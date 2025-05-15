@@ -32,7 +32,7 @@ class OpenrouterExecutableTranslator(AbstractExecutableTranslator):
         payload = {
             "model": self.model_slug,
             "temperature": temperature,
-            "max_tokens": 3000,
+            "max_tokens": len(text) * 3,
             "messages": [{"role": "user", "content": prompt}],
         }
 
@@ -60,15 +60,15 @@ class OpenrouterGenericInference(AbstractGenericInference):
             "Authorization": f"Bearer {self.api_key}",
         }
         append_text = ""
-        if self.append:
-            append_text = self.append
+        if self.append is not None:
+            append_text = self.append + " "
 
         payload = {
             "model": self.model_slug,
             "temperature": temperature,
             "max_tokens": 3000,
             "messages": [
-                {"role": "user", "content": self.append + " " + user_prompt},
+                {"role": "user", "content": append_text + user_prompt},
             ],
         }
 

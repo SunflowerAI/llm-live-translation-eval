@@ -173,3 +173,17 @@ class ComparisonItem:
     b_success: bool
     identical: bool
     evaluating_response: str
+
+
+@dataclass
+class RankItem:
+    language: TranslatableLanguage
+    tested_entry: TestedEntry
+
+    sentence: str
+    sentence_category: str
+    evaluating_model: str
+
+    translation: str
+
+    score: int

@@ -17,6 +17,9 @@ from sqlitekv import SQLiteKVCache
 from test_data import *
 from run_evaluation import evaluate_datasets
 
+import os
+import shutil
+
 cache = SQLiteKVCache("./cache.db")
 
 # define comparing methods
@@ -39,9 +42,7 @@ compare_models = [
     # ),
     (
         "qwen/qwen3-235b-a22b-comparison-system",  # has a claude lineage, because they trained off of outputs
-        OpenrouterGenericInference(
-            OPENROUTER_API_KEY, "qwen/qwen3-235b-a22b", also_add="/no_think\n"
-        ),
+        OpenrouterGenericInference(OPENROUTER_API_KEY, "qwen/qwen3-235b-a22b"),
     ),
     (
         "deepseek/deepseek-v3-comparison-system",
@@ -69,14 +70,32 @@ compare_models = [
     ),
 ]
 
+
+def save_to_folder(permutations, perms_dict, folder):
+    if os.path.exists(folder):
+        shutil.rmtree(folder)
+
+    os.makedirs(folder, exist_ok=True)
+
+    with open(os.path.join(folder, "manifest.json"), "w") as f:
+        json.dump(permutations, f, indent=4)
+
+    for id, data in perms_dict.items():
+        with open(os.path.join(folder, f"item-{id}.json"), "w") as f:
+            json.dump(data, f)
+
+
 # first run on testing dataset
 
-"""data_testing = evaluate_datasets(
+testing_perms, testing_data = evaluate_datasets(
     target_languages_testing, evaluation_targets_testing, cache, compare_models
 )
 
-with open("out_testing.json", "w") as f:
-    f.write(json.dumps(data_testing, indent=4))"""
+save_to_folder(testing_perms, testing_data, "testing_result")
+
+import sys
+
+sys.exit()
 
 # then run on sensible_large on German for a broad idea
 data_initial_comparison = evaluate_datasets(
