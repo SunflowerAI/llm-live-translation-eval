@@ -20,6 +20,8 @@ from run_evaluation import evaluate_datasets
 import os
 import shutil
 
+from coherence import inference_coherence_batch
+
 cache = SQLiteKVCache("./cache.db")
 
 # define comparing methods
@@ -70,42 +72,55 @@ compare_models = [
     ),
 ]
 
+compare_models_coherence = [
+    (
+        "deepseek/deepseek-v3-comparison-system",
+        OpenrouterGenericInference(
+            OPENROUTER_API_KEY, "deepseek/deepseek-chat-v3-0324"
+        ),
+    ),
+    (
+        "google/gemini-2.5-flash-preview-comparison-system",
+        OpenrouterGenericInference(
+            OPENROUTER_API_KEY, "google/gemini-2.5-flash-preview"
+        ),
+    ),
+]
 
-def save_to_folder(permutations, perms_dict, folder):
-    if os.path.exists(folder):
-        shutil.rmtree(folder)
-
-    os.makedirs(folder, exist_ok=True)
-
-    with open(os.path.join(folder, "manifest.json"), "w") as f:
-        json.dump(permutations, f, indent=4)
-
-    for id, data in perms_dict.items():
-        with open(os.path.join(folder, f"item-{id}.json"), "w") as f:
-            json.dump(data, f)
-
-
-# first run on testing dataset
-
-testing_perms, testing_data = evaluate_datasets(
-    target_languages_testing, evaluation_targets_testing, cache, compare_models
+# test run on coherence
+print(
+    inference_coherence_batch(
+        TranslatableLanguage.German,
+        coherence_test_run,
+        compare_models_coherence,
+        4,
+        2,
+        0,
+        cache,
+    )
 )
-
-save_to_folder(testing_perms, testing_data, "testing_result")
-
 import sys
 
 sys.exit()
 
+# first run on testing dataset
+
+"""dataset = evaluate_datasets(
+    target_languages_testing, evaluation_targets_testing, cache, compare_models
+)
+
+with open("out_testing.json", "w") as f:
+    f.write(json.dumps(dataset, indent=4))"""
+
 # then run on sensible_large on German for a broad idea
 data_initial_comparison = evaluate_datasets(
     [TranslatableLanguage.German],
-    evaluation_targets_sensible_large_temp0_nothink,
+    evaluation_targets_new_multitemp_multithink,
     cache,
     compare_models,
 )
 
-with open("out_initial_comparison.json", "w") as f:
+with open("out_german_multitemp_multithink.json", "w") as f:
     f.write(json.dumps(data_initial_comparison, indent=4))
 
 # then run on the temperature testing dataset

@@ -9,7 +9,7 @@ class OpenrouterExecutableTranslator(AbstractExecutableTranslator):
     def __init__(self, api_key: str, model_slug: str, also_add=""):
         self.model_slug = model_slug
         self.api_key = api_key
-        self.also_add = ""
+        self.also_add = also_add
 
     def is_tl_valid(self, target_lang: TranslatableLanguage):
         return True
@@ -32,7 +32,7 @@ class OpenrouterExecutableTranslator(AbstractExecutableTranslator):
         payload = {
             "model": self.model_slug,
             "temperature": temperature,
-            "max_tokens": len(text) * 3,
+            "max_tokens": (len(text) * 6) + 4000,
             "messages": [{"role": "user", "content": prompt}],
         }
 
@@ -41,6 +41,7 @@ class OpenrouterExecutableTranslator(AbstractExecutableTranslator):
             raise Exception(f"OpenRouter error {response.status_code}: {response.text}")
 
         result = response.json()
+        print(result)
         return result["choices"][0]["message"]["content"]
 
 
@@ -66,7 +67,7 @@ class OpenrouterGenericInference(AbstractGenericInference):
         payload = {
             "model": self.model_slug,
             "temperature": temperature,
-            "max_tokens": 3000,
+            "max_tokens": 9000,
             "messages": [
                 {"role": "user", "content": append_text + user_prompt},
             ],

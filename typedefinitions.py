@@ -73,6 +73,9 @@ class ModelName(Enum):
     Qwen3_32b = "Qwen 3 32B"
     Qwen3_235b_a22b = "Qwen 3 235B A22B"
     Nuenki_Hybrid = "Nuenki Hybrid"
+    Deepseek_R1 = "Deepseek R1"
+    Deepseek_V3 = "Deepseek V3"
+    Mistral_Medium_3 = "Mistral Medium 3"
 
 
 class ModelCompany(Enum):
@@ -86,6 +89,7 @@ class ModelCompany(Enum):
     Alibaba = "Alibaba"
     Mistral = "Mistral"
     Nuenki = "Nuenki"
+    Deepseek = "Deepseek"
 
 
 class InferenceCompany(Enum):
@@ -143,6 +147,7 @@ class TestedEntry:
             + self.model_company.value
             + self.inference_service_name.value
             + str(self.temp)
+            + str(self.thinking)
         )
 
     def dump_data(self):
@@ -187,3 +192,15 @@ class RankItem:
     translation: str
 
     score: int
+
+
+@dataclass
+class CoherenceIteration:
+    sentence_cat: str
+    sentence: str
+    depth: int
+    staged_text: str
+
+    evaluations: list
+
+    tested_entry: TestedEntry

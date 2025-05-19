@@ -1,4 +1,3 @@
-import hashlib
 import time
 from dataset import SENTENCES_LIST
 from typedefinitions import *
@@ -14,6 +13,7 @@ import numpy as np
 import random
 import re
 from scipy.stats import mannwhitneyu
+from utils import md5hash, get_translation_with_cache_check
 
 
 def all_non_duplicate_sets(input_list):
@@ -40,54 +40,8 @@ def pair_every(pairwise_items, input_data, start, interval, limit):
             count += 1
 
 
-def md5hash(text):
-    return hashlib.md5(bytes(text, "utf-8")).hexdigest()
-
-
-def deterministic_coin_flip(s: str) -> bool:
-    h = hashlib.sha256(s.encode()).digest()
-    return bool(h[0] & 1)
-
-
 def log_sentence_data(*args, **kwargs):
-    # return
     print("S", *args, **kwargs)
-
-
-def get_translation_with_cache_check(model, language, category, sentence, cache):
-    cache_key = f"TRANSLATION Language:{language.value}|Model: {model.unique_id()}|Sentence category:{category}|Sentence md5:{md5hash(sentence)}"
-    check = cache.get(cache_key)
-    if check:
-        return check
-    else:
-        log_sentence_data("Translating", cache_key)
-
-        # this is to avoid getting ratelimited...
-        sleep_t = choice(range(0, 4))
-        time.sleep(sleep_t)
-
-        start_t = None
-        end_t = None
-        translation = None
-
-        i = 0
-        while True:
-            log_sentence_data("Translation attempt", i)
-            i += 1
-            try:
-                start_t = time.time()
-                translation = model.inference_source.translate(
-                    TranslatableLanguage.English, language, sentence, model.temp
-                )
-                end_t = time.time()
-                break
-            except Exception as e:
-                log_sentence_data("Err on translate", e, "with m", model)
-                time.sleep(i * choice(range(3, 12)))
-
-        cache.set(cache_key, translation)
-        log_latency(model.unique_id(), category, sentence, end_t - start_t)
-        return translation
 
 
 def deterministic_sample(translations, key):
@@ -98,14 +52,23 @@ def deterministic_sample(translations, key):
 def process_sentence(
     language, category, sentence, testing_models, cache, compare_models, output_queue
 ):
+    wait_t = choice(range(0, 128))
+    time.sleep(wait_t)
+
     log_sentence_data("Checking", language, category, sentence)
 
     # {text: [compare_models_list]}
     translations = {}
 
+    # sampling to help with rate limits
     for testing_model in testing_models:
         translation = get_translation_with_cache_check(
-            testing_model, language, category, sentence, cache
+            testing_model,
+            TranslatableLanguage.English,
+            language,
+            category,
+            sentence,
+            cache,
         )
         if translations.get(translation):
             translations[translation].append(testing_model)
@@ -118,10 +81,14 @@ def process_sentence(
         randomised_id_lookup = {}
 
         prompt_translations_text = ""
-        determ_key = "|".join(sorted(translations.keys())) + "-" + comparison_model
-        log_sentence_data("Determ key", determ_key)
+        determ_key = (
+            "|".join(sorted(list(translations.keys()))) + "-" + comparison_model
+        )
+        # log_sentence_data("Determ key", determ_key)
 
-        for i, text in deterministic_sample(sorted(translations.keys()), determ_key):
+        for i, text in deterministic_sample(
+            sorted(list(translations.keys())), determ_key
+        ):
             models = translations[text]
             randomised_id_lookup[i] = (text, models)
             prompt_translations_text += f"""Translation ID {i}:\n```{text}```\n"""
@@ -133,31 +100,26 @@ def process_sentence(
 ]
 ```"""
 
-        comparison_prompt = f"""You're an unforgiving professional translator. You will be tasked with critiquing, comparing, and ranking multiple translations of the same sentence.
-IGNORE subjective or arguable style differences (e.g. using a common or technical English loan word; passive vs active voice). If a choice can be reasonably defended as a subjective but valid choice, do not criticise it. Prefer natural translations over literal ones that sound non-native. The objective is to assess translation *quality* independent of *style*.
+        comparison_prompt = f"""You're an unforgiving professional translator. Your job is to critique, compare, and score multiple translations of the same sentence.
+IGNORE subjective or arguable style differences (e.g. loanwords; passive vs active). If a choice is defensible as style, don't criticise it. Favour natural, native-sounding translations over literal or clunky ones. The objective is to assess translation *quality* independent of *style*.
 
-Think step-by-step in *only a few words per point*, like "1 is better at 'Hallo'. 2 more idiomatic. 1 misuses 'Schlecht'." AVOID VERBOSITY! Just terse, for yourself. Save tokens.
+Think step-by-step in *minimal per point*, like "1 is better at 'Hallo'. 2 more idiomatic. 1 misuses 'Schlecht'." AVOID VERBOSITY! Just terse, for yourself. Save tokens.
 
-Evaluate in order of priority (high-to-low):
+Evaluation order:
 - Accuracy (Same meaning?)
 - Vocab (Check for any mistakes, however subtle)
 - Grammar accuracy
-- Tone (does it match the original?)
+- Tone matching
 - *Consistency* in formality, both within the translation and compared to the original
 - Idiomaticity & style (native phrasing? Remember, no stylistic judgements)
-Remember priorities when tiebreaking.
 
-This is the original text:
+Original text:
 ```{sentence}```
 
-Here are the translations:
+Translations into `{language.value}`:
 {prompt_translations_text}
 
-You should think aloud for as long as you need,
-- critiquing
-- comparing
-- then, finally, scoring each translation between 0 and 100.
-You should try and use a broad range and avoid being overly positive or forgiving. It's OK to use the low end (<40) when describing truly poor translations!
+Critique tersely, compare, and score each 0-100. Use the full range, including <40 for poor translations.
 
 Once you're ready to give your final answer, write out a triple-backtick code block with a JSON response in the following form:
 {json_example}
@@ -168,7 +130,7 @@ This will be parsed, so keep your output exact, and remember the triple-backtick
         # log_sentence_data("Prompt", comparison_prompt)
 
         key = f"COMPARISON hash:{md5hash(comparison_prompt)} Model:{comparison_model}"
-        log_sentence_data("KEY", key)
+        # log_sentence_data("KEY", key)
         comparison_data = None
 
         if cache.get(key):
@@ -195,45 +157,65 @@ This will be parsed, so keep your output exact, and remember the triple-backtick
                     time.sleep(i * choice(range(5, 25)))
 
         if not comparison_data:
+            print("Failed to get data for", comparison_model, sentence)
             continue
 
         log_sentence_data("Resp", comparison_data)
 
-        # now parse...
         def extract_json_from_response(response):
-            matches = re.findall(r"```(.*?)```", response, re.DOTALL)
-            if matches:
-                return matches[-1].strip().replace("json", "")
-            else:
-                return response
+            parts = response.split("```")
+            for part in reversed(parts):
+                try:
+                    return json.loads(part.replace("json", "").strip())
+                except json.JSONDecodeError:
+                    continue
 
-        json_str = extract_json_from_response(comparison_data)
-        if json_str:
             try:
-                scores_list = json.loads(json_str)
+                return json.loads(response)
+            except json.JSONDecodeError:
+                return None
 
-                for entry in scores_list:
-                    entry_id = int(str(entry["id"]).replace("ID", ""))
-                    entry_score = float(entry["score"])
-                    if entry_id in randomised_id_lookup:
-                        text, models = randomised_id_lookup[entry_id]
-                        for testing_model in models:
-                            output_queue.put(
-                                RankItem(
-                                    language=language,
-                                    tested_entry=testing_model,
-                                    sentence=sentence,
-                                    sentence_category=category,
-                                    evaluating_model=comparison_model,
-                                    translation=text,
-                                    score=entry_score,
-                                )
+        try:
+            scores_list = extract_json_from_response(comparison_data)
+
+            if not scores_list:
+                print(
+                    "Error handling JSON - could not parse!!!",
+                    f"full data: [{comparison_data}]",
+                )
+                break
+
+            if len(scores_list) != len(randomised_id_lookup.keys()):
+                print("Incorrect response length on", comparison_data)
+
+            for entry in scores_list:
+                entry_id = int(str(entry["id"]).replace("ID", ""))
+                entry_score = float(entry["score"])
+                if entry_id in randomised_id_lookup:
+                    text, models = randomised_id_lookup[entry_id]
+                    for testing_model in models:
+                        output_queue.put(
+                            RankItem(
+                                language=language,
+                                tested_entry=testing_model,
+                                sentence=sentence,
+                                sentence_category=category,
+                                evaluating_model=comparison_model,
+                                translation=text,
+                                score=entry_score,
                             )
-            except Exception as e:
-                print("Error handling JSON", e, f"data:[{json_str}]")
-        else:
-            log_sentence_data("No JSON found in response")
-            continue
+                        )
+                else:
+                    print("Incorrect entry id", entry_id, "on msg", comparison_data)
+
+        except Exception as e:
+            print(
+                "Error handling JSON",
+                e,
+                "model",
+                comparison_model,
+                f"full data: [{comparison_data}]",
+            )
 
 
 def compare_set(language, target_models, cache, compare_models):
@@ -320,37 +302,55 @@ def produce_summary(dataset, target_models, judge_names, sentence_cats, i):
 
 
 def evaluate_datasets(target_languages, target_models, cache, compare_models):
-    permutations = []
-    perms_dict = {}
+    out = []
 
-    i = 0
     for lang in target_languages:
         data = compare_set(lang, target_models, cache, compare_models)
 
-        # things to do now:
-        # - have a function that gets all the data for a specific model - mean, median, s.d., and all values
-        # - also have it calculate p values
-        # - have that function accept an arg for exclusion of judges
-        # - do it for all permutations... and add to output
-        judge_names = [x for x, y in compare_models]
-        judge_combs = all_non_duplicate_sets(judge_names)
-        sentence_combs = all_non_duplicate_sets(SENTENCES_LIST.keys())
+        # now make it into a minimal set of data that's OK to be handed to the client...
 
-        for judge_comb in judge_combs:
-            for sentence_comb in sentence_combs:
-                i += 1
+        model_data = []
+        for i, model in enumerate(target_models):
+            data_filtered = [x for x in data if x.tested_entry == model]
 
-                summary = produce_summary(
-                    data, target_models, judge_comb, sentence_comb, i
-                )
-                permutations.append(
-                    {
-                        "lang": lang.value,
-                        "judges": judge_comb,
-                        "sentences": sentence_comb,
-                        "id": i,
-                    }
-                )
-                perms_dict[i] = summary
+            scored_by_narrowed_pairs = []
 
-    return permutations, perms_dict
+            for item in data_filtered:
+                found = False
+
+                for existing in scored_by_narrowed_pairs:
+                    if (
+                        existing["sentence_category"] == item.sentence_category
+                        and existing["evaluating_model"] == item.evaluating_model
+                    ):
+                        existing["scores"].append(item.score)
+                        found = True
+                        break
+
+                if not found:
+                    scored_by_narrowed_pairs.append(
+                        {
+                            "sentence_category": item.sentence_category,
+                            "evaluating_model": item.evaluating_model,
+                            "scores": [item.score],
+                        }
+                    )
+
+            model_data.append(
+                {
+                    "id": i,
+                    "model": {
+                        "name": model.model_name.value,
+                        "company": model.model_company.value,
+                        "temp": model.temp,
+                        "thinking": model.thinking,
+                    },
+                    "comparison_items": scored_by_narrowed_pairs,
+                    "compare_models": [x for x, y in compare_models],
+                    "sentence_types": list(SENTENCES_LIST.keys()),
+                }
+            )
+
+        out.append({"language": lang.value, "models": model_data})
+
+    return out
