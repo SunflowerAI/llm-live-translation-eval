@@ -18,6 +18,8 @@ class TranslatableLanguage(Enum):
     Korean = "Korean"
     Thai = "Thai"
     Welsh = "Welsh"
+    Swahili = "Swahili"
+    Esperanto = "Esperanto"
 
     def nuenki_code(self) -> str:
         if self == TranslatableLanguage.EuropeanSpanish:
@@ -66,7 +68,7 @@ class ModelName(Enum):
     GPT_41_Nano = "GPT 4.1 Nano"
     Qwen_25_32B = "Qwen 2.5 32B"
     Llama_31_8b = "LLama 3.1 8b instant"
-    Mistral_Small_Latest = "Mistral Small Latest"
+    Mistral_Small_31_24B = "Mistral Small 3.1 24B"
     Mistral_Saba_24B = "Mistral Saba 24B"
     Qwen3_30_a3b = "Qwen 3 30B A3B"
     Qwen3_14b = "Qwen 3 14B"
@@ -75,7 +77,13 @@ class ModelName(Enum):
     Nuenki_Hybrid = "Nuenki Hybrid"
     Deepseek_R1 = "Deepseek R1"
     Deepseek_V3 = "Deepseek V3"
+    Deepseek_V3_NEW = "Deepseek V3 03-24"
     Mistral_Medium_3 = "Mistral Medium 3"
+    GPT_4_Turbo = "GPT 4 Turbo"
+    Claude_4_Sonnet = "Claude 4 Sonnet"
+    Claude_4_Opus = "Claude 4 Opus"
+    GPT_3_5_Turbo = "GPT 3.5 Turbo"
+    Aya_Expanse_32B = "Aya Expanse 32B"
 
 
 class ModelCompany(Enum):
@@ -90,6 +98,34 @@ class ModelCompany(Enum):
     Mistral = "Mistral"
     Nuenki = "Nuenki"
     Deepseek = "Deepseek"
+    Cohere = "Cohere"
+
+    def colour(self):
+        match self:
+            case ModelCompany.Google:
+                return "#4285F4"  # blue
+            case ModelCompany.Meta:
+                return "#9b59b6"  # purple hue
+            case ModelCompany.Mistral:
+                return "#FF9500"  # vibrant orange
+            case ModelCompany.OpenAI:
+                return "#00C853"  # green
+            case ModelCompany.Anthropic:
+                return "#FFB300"  # amber
+            case ModelCompany.X_AI:
+                return "#808080"  # grey (Grok)
+            case ModelCompany.Alibaba:
+                return "#FF5722"  # deep orange
+            case ModelCompany.Lingvanex:
+                return "#607D8B"  # blue-grey
+            case ModelCompany.DeepL:
+                return "#2c3e50"  # deep dark blue
+            case ModelCompany.Nuenki:
+                return "#6bab90"  # brand colour
+            case ModelCompany.Cohere:
+                return "#f0dff3"
+            case _:
+                return "black"  # default color for unknown company
 
 
 class InferenceCompany(Enum):
@@ -100,6 +136,7 @@ class InferenceCompany(Enum):
     DeepL = "DeepL"
     Lingvanex = "Lingvanex"
     Nuenki = "Nuenki"
+    Cohere = "Cohere"
 
 
 # I'm not usually one for inheritance, but it works so nicely here!

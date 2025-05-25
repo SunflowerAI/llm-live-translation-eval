@@ -23,8 +23,8 @@ def get_translation_with_cache_check(model, source, target, category, sentence, 
     cache_key = f"TRANSLATION From Language:{source.value} To Language: {target.value}|Model: {model.unique_id()}|Sentence md5:{md5hash(sentence)}"
     check = cache.get(cache_key)
     if check:
-        if len(check) < 4:
-            cache.delete(cache_key)
+        if len(check) < 3 or "483" in check:
+            return None
         else:
             return check
 
@@ -34,21 +34,22 @@ def get_translation_with_cache_check(model, source, target, category, sentence, 
 
     i = 0
     while True:
+        print("Iteration of translate loop")
         i += 1
         try:
             start_t = time.time()
             translation = model.inference_source.translate(
                 source, target, sentence, model.temp
             )
-            if len(translation) < 5:
+            if len(translation) < 3 or "483" in translation:
                 print("INCORRECT TRANSLATION LENGTH", translation, "ON", cache_key)
-                import sys
-
-                sys.exit()
+                cache.set(cache_key, translation)
+                return None
 
             end_t = time.time()
             break
         except Exception as e:
+            print("Exception during inference", e, model)
             time.sleep(i * choice(range(3, 12)))
             continue
 

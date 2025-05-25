@@ -17,6 +17,8 @@ class SQLiteKVCache:
             )
         """
         )
+        # conn.execute("DELETE FROM kv WHERE LOWER(key) LIKE '%nuenki%'")
+
         conn.commit()
         conn.close()
 

@@ -20,16 +20,20 @@ from run_evaluation import evaluate_datasets
 import os
 import shutil
 
-from coherence import inference_coherence_batch
+from coherence import (
+    inference_coherence_batch,
+    chart_coherence,
+    chart_coherence_by_category,
+)
 
 cache = SQLiteKVCache("./cache.db")
 
 # define comparing methods
 compare_models = [
-    (
-        "openai/gpt-4.1-comparison-system",
-        OpenrouterGenericInference(OPENROUTER_API_KEY, "openai/gpt-4.1"),
-    ),
+    # (
+    #    "openai/gpt-4.1-comparison-system",
+    #    OpenrouterGenericInference(OPENROUTER_API_KEY, "openai/gpt-4.1"),
+    # ),
     # (
     #    "anthropic/claude-3.7-sonnet-comparison-system",
     #    OpenrouterGenericInference(OPENROUTER_API_KEY, "anthropic/claude-3.7-sonnet"),
@@ -88,20 +92,17 @@ compare_models_coherence = [
 ]
 
 # test run on coherence
-print(
-    inference_coherence_batch(
-        TranslatableLanguage.German,
-        coherence_test_run,
-        compare_models_coherence,
-        4,
-        2,
-        0,
-        cache,
-    )
+"""data = inference_coherence_batch(
+    TranslatableLanguage.German,
+    coherence_test_run,
+    compare_models_coherence,
+    4,
+    24,
+    0,
+    cache,
 )
-import sys
 
-sys.exit()
+chart_coherence(data, save_path="german_coherence_depth.png")"""
 
 # first run on testing dataset
 
@@ -112,19 +113,98 @@ sys.exit()
 with open("out_testing.json", "w") as f:
     f.write(json.dumps(dataset, indent=4))"""
 
-# then run on sensible_large on German for a broad idea
-data_initial_comparison = evaluate_datasets(
-    [TranslatableLanguage.German],
-    evaluation_targets_new_multitemp_multithink,
+data_updated_comparison = evaluate_datasets(
+    [
+        TranslatableLanguage.German,
+        TranslatableLanguage.Chinese,
+        TranslatableLanguage.Hungarian,
+        TranslatableLanguage.French,
+        TranslatableLanguage.Japanese,
+        TranslatableLanguage.Italian,
+        # TranslatableLanguage.EuropeanSpanish,
+        TranslatableLanguage.Ukrainian,
+        TranslatableLanguage.Swedish,
+        TranslatableLanguage.Korean,
+        # TranslatableLanguage.Welsh,
+        # TranslatableLanguage.Swahili,
+    ],
+    evaluation_targets_new_multithink_additional_updated,
     cache,
     compare_models,
 )
 
-with open("out_german_multitemp_multithink.json", "w") as f:
+with open("out_major_comparison_updated.json", "w") as f:
+    f.write(json.dumps(data_updated_comparison, indent=4))
+
+import sys
+
+sys.exit()
+
+# then run on sensible_large on German for a broad idea
+data_initial_comparison = evaluate_datasets(
+    [
+        TranslatableLanguage.German,
+        TranslatableLanguage.Chinese,
+        TranslatableLanguage.Hungarian,
+        TranslatableLanguage.French,
+        TranslatableLanguage.Japanese,
+        TranslatableLanguage.Italian,
+        # TranslatableLanguage.EuropeanSpanish,
+        TranslatableLanguage.Ukrainian,
+        TranslatableLanguage.Swedish,
+        TranslatableLanguage.Korean,
+        # TranslatableLanguage.Welsh,
+        # TranslatableLanguage.Swahili,
+    ],
+    evaluation_targets_new_multithink_additional,
+    cache,
+    compare_models,
+)
+
+with open("out_major_comparison.json", "w") as f:
     f.write(json.dumps(data_initial_comparison, indent=4))
 
-# then run on the temperature testing dataset
+data_initial_comparison = evaluate_datasets(
+    [
+        TranslatableLanguage.Welsh,
+    ],
+    evaluation_targets_new_multithink_additional_nodeepl_nolingvanex,
+    cache,
+    compare_models,
+)
 
-# then test the top models vs thinking models vs thinking on-off
+with open("out_major_comparison_nodeepl_nolingvanex.json", "w") as f:
+    f.write(json.dumps(data_initial_comparison, indent=4))
 
-# then run on the low_resource_inform on the best existing models on all niche Nuenki langs
+data_initial_comparison = evaluate_datasets(
+    [TranslatableLanguage.Swahili],
+    evaluation_targets_new_multithink_additional_nodeepl_nolingvanex_nonuenki,
+    cache,
+    compare_models,
+)
+
+with open("out_major_comparison_nodeepl_nolingvanex_nonuenki.json", "w") as f:
+    f.write(json.dumps(data_initial_comparison, indent=4))
+
+data_temp_comparison = evaluate_datasets(
+    [
+        TranslatableLanguage.German,
+        TranslatableLanguage.Chinese,
+        TranslatableLanguage.Hungarian,
+        TranslatableLanguage.French,
+        TranslatableLanguage.Japanese,
+        TranslatableLanguage.Italian,
+        # TranslatableLanguage.EuropeanSpanish,
+        TranslatableLanguage.Ukrainian,
+        TranslatableLanguage.Swedish,
+        TranslatableLanguage.Korean,
+        # TranslatableLanguage.Welsh,
+        # TranslatableLanguage.Swahili,
+    ],
+    evaluation_targets_top_models_multi_temp,
+    cache,
+    compare_models,
+)
+
+with open("out_temp_comparison.json", "w") as f:
+    f.write(json.dumps(data_temp_comparison, indent=4))

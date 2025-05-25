@@ -52,13 +52,15 @@ def deterministic_sample(translations, key):
 def process_sentence(
     language, category, sentence, testing_models, cache, compare_models, output_queue
 ):
-    wait_t = choice(range(0, 128))
+    wait_t = choice(range(0, 3))
     time.sleep(wait_t)
 
     log_sentence_data("Checking", language, category, sentence)
+    print("Lang", language)
 
     # {text: [compare_models_list]}
     translations = {}
+    refusals = []
 
     # sampling to help with rate limits
     for testing_model in testing_models:
@@ -70,10 +72,14 @@ def process_sentence(
             sentence,
             cache,
         )
-        if translations.get(translation):
-            translations[translation].append(testing_model)
+        if translation == None:
+            refusals.append(testing_model)
+
         else:
-            translations[translation] = [testing_model]
+            if translations.get(translation):
+                translations[translation].append(testing_model)
+            else:
+                translations[translation] = [testing_model]
 
     log_sentence_data("Translations", translations)
 
@@ -138,7 +144,7 @@ This will be parsed, so keep your output exact, and remember the triple-backtick
             log_sentence_data("Cache hit")
         else:
             log_sentence_data("Inference for comparison")
-            wait_t = choice(range(0, 6))
+            wait_t = choice(range(0, 2))
             time.sleep(wait_t)
 
             for i in range(3):
@@ -154,7 +160,7 @@ This will be parsed, so keep your output exact, and remember the triple-backtick
                         "with comp model",
                         comparison_model,
                     )
-                    time.sleep(i * choice(range(5, 25)))
+                    time.sleep(i * choice(range(5, 10)))
 
         if not comparison_data:
             print("Failed to get data for", comparison_model, sentence)
@@ -187,6 +193,19 @@ This will be parsed, so keep your output exact, and remember the triple-backtick
 
             if len(scores_list) != len(randomised_id_lookup.keys()):
                 print("Incorrect response length on", comparison_data)
+
+            for refusal in refusals:
+                output_queue.put(
+                    RankItem(
+                        language=language,
+                        tested_entry=refusal,
+                        sentence=sentence,
+                        sentence_category=category,
+                        evaluating_model=comparison_model,
+                        translation=text,
+                        score=-483,
+                    )
+                )
 
             for entry in scores_list:
                 entry_id = int(str(entry["id"]).replace("ID", ""))
@@ -305,6 +324,7 @@ def evaluate_datasets(target_languages, target_models, cache, compare_models):
     out = []
 
     for lang in target_languages:
+        print("Lang", lang)
         data = compare_set(lang, target_models, cache, compare_models)
 
         # now make it into a minimal set of data that's OK to be handed to the client...
