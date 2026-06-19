@@ -1,0 +1,97 @@
+{
+  "source": "https://soundcloud.com/hunterbiblechurch/tracks",
+  "total_tracks": 369,
+  "seed": 20260619,
+  "sermons": [
+    {
+      "id": "1077837019",
+      "title": "Love & Power in Leadership | 1 Corinthians 4:14-21 | Foolish Wisdom",
+      "url": "https://soundcloud.com/hunterbiblechurch/love-power-in-leadership-1-corinthians-414-21-foolish-wisdom",
+      "status": "done",
+      "num_finals": 372,
+      "num_segments": 365,
+      "audio_end": 2070.1
+    },
+    {
+      "id": "801344689",
+      "title": "The Resurrection | Live Q&A with Greg Lee",
+      "url": "https://soundcloud.com/hunterbiblechurch/the-resurrection-live-qa-with-greg-lee",
+      "status": "done",
+      "num_finals": 405,
+      "num_segments": 622,
+      "audio_end": 3467.8
+    },
+    {
+      "id": "1054361551",
+      "title": "The City | 2 Timothy 2:1-13 | A Home for Everyone",
+      "url": "https://soundcloud.com/hunterbiblechurch/the-city-2-timothy-21-13-a-home-for-everyone",
+      "status": "done",
+      "num_finals": 450,
+      "num_segments": 531,
+      "audio_end": 2366.2
+    },
+    {
+      "id": "1467004651",
+      "title": "The Law and The Promise | Galatians 3:1-22 | The One True Gospel",
+      "url": "https://soundcloud.com/hunterbiblechurch/the-law-and-the-promise-galatians-31-21-the-one-true-gospel",
+      "status": "done",
+      "num_finals": 420,
+      "num_segments": 493,
+      "audio_end": 2132.4
+    },
+    {
+      "id": "1508372908",
+      "title": "Overconfidence | 1 Corinthians 10:1-13 | Idols & Demons",
+      "url": "https://soundcloud.com/hunterbiblechurch/1-corinthians-101-13-idols-demons",
+      "status": "done",
+      "num_finals": 497,
+      "num_segments": 531,
+      "audio_end": 1499.9
+    },
+    {
+      "id": "2137683033",
+      "title": "Faith That Moves This Mountain | Matthew 17:1-27 | Matthew 14-20",
+      "url": "https://soundcloud.com/hunterbiblechurch/faith-that-moves-this-mountain-matthew-171-27-matthew-14-20",
+      "status": "done",
+      "num_finals": 301,
+      "num_segments": 367,
+      "audio_end": 2519.2
+    },
+    {
+      "id": "1849037310",
+      "title": "Following in Fear & Faith | Matthew 8:18-9:8 | Jesus Meek & Wild",
+      "url": "https://soundcloud.com/hunterbiblechurch/following-in-fear-faith-matthew-818-98-jesus-meek-mild",
+      "status": "done",
+      "num_finals": 288,
+      "num_segments": 365,
+      "audio_end": 2307.5
+    },
+    {
+      "id": "885418201",
+      "title": "Is the Gospel Worth the Trouble? | Acts 14:1-28 | Jesus' Story. Our Story.",
+      "url": "https://soundcloud.com/hunterbiblechurch/acts-141-28-jesus-story-our-story",
+      "status": "done",
+      "num_finals": 205,
+      "num_segments": 232,
+      "audio_end": 1647.7
+    },
+    {
+      "id": "998301709",
+      "title": "2 Samuel 11–12 I Bible Reading",
+      "url": "https://soundcloud.com/hunterbiblechurch/2-samuel-1112-i-bible-reading",
+      "status": "done",
+      "num_finals": 24,
+      "num_segments": 27,
+      "audio_end": 564.3
+    },
+    {
+      "id": "983951911",
+      "title": "1 Samuel 8 - 15 | Bible Reading",
+      "url": "https://soundcloud.com/hunterbiblechurch/1-samuel-8-15",
+      "status": "done",
+      "num_finals": 601,
+      "num_segments": 773,
+      "audio_end": 2244.5
+    }
+  ]
+}

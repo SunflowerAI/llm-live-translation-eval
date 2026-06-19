@@ -1,0 +1,1407 @@
+{
+  "metadata": {
+    "request_id": "019ee023-3f47-7b90-9237-de026501a7a3"
+  },
+  "final_results": [
+    {
+      "transcript": "Two Samuel chapter eleven.",
+      "words": [
+        {
+          "word": "two",
+          "start": 0.39999998,
+          "end": 0.64,
+          "confidence": 0.9921875,
+          "punctuated_word": "Two"
+        },
+        {
+          "word": "samuel",
+          "start": 0.64,
+          "end": 1.04,
+          "confidence": 0.9980469,
+          "punctuated_word": "Samuel"
+        },
+        {
+          "word": "chapter",
+          "start": 1.04,
+          "end": 1.4399999,
+          "confidence": 0.8051758,
+          "punctuated_word": "chapter"
+        },
+        {
+          "word": "eleven",
+          "start": 1.4399999,
+          "end": 1.76,
+          "confidence": 0.98999023,
+          "punctuated_word": "eleven."
+        }
+      ],
+      "start": 0.39999998,
+      "end": 1.76
+    },
+    {
+      "transcript": "In the spring, at the time when kings go off to war,",
+      "words": [
+        {
+          "word": "in",
+          "start": 2.6399999,
+          "end": 2.8799999,
+          "confidence": 0.9980469,
+          "punctuated_word": "In"
+        },
+        {
+          "word": "the",
+          "start": 2.8799999,
+          "end": 3.04,
+          "confidence": 0.9980469,
+          "punctuated_word": "the"
+        },
+        {
+          "word": "spring",
+          "start": 3.04,
+          "end": 3.6799998,
+          "confidence": 0.7988281,
+          "punctuated_word": "spring,"
+        },
+        {
+          "word": "at",
+          "start": 3.6799998,
+          "end": 3.84,
+          "confidence": 0.99902344,
+          "punctuated_word": "at"
+        },
+        {
+          "word": "the",
+          "start": 3.84,
+          "end": 3.9199998,
+          "confidence": 0.9980469,
+          "punctuated_word": "the"
+        },
+        {
+          "word": "time",
+          "start": 3.9199998,
+          "end": 4.16,
+          "confidence": 1.0,
+          "punctuated_word": "time"
+        },
+        {
+          "word": "when",
+          "start": 4.16,
+          "end": 4.3999996,
+          "confidence": 0.9970703,
+          "punctuated_word": "when"
+        },
+        {
+          "word": "kings",
+          "start": 4.3999996,
+          "end": 4.8,
+          "confidence": 0.984375,
+          "punctuated_word": "kings"
+        },
+        {
+          "word": "go",
+          "start": 4.8,
+          "end": 5.04,
+          "confidence": 1.0,
+          "punctuated_word": "go"
+        },
+        {
+          "word": "off",
+          "start": 5.04,
+          "end": 5.2,
+          "confidence": 0.9951172,
+          "punctuated_word": "off"
+        },
+        {
+          "word": "to",
+          "start": 5.2,
+          "end": 5.2799997,
+          "confidence": 0.99902344,
+          "punctuated_word": "to"
+        },
+        {
+          "word": "war",
+          "start": 5.2799997,
+          "end": 5.5199995,
+          "confidence": 0.9489746,
+          "punctuated_word": "war,"
+        }
+      ],
+      "start": 2.6399999,
+      "end": 5.5199995
+    },
+    {
+      "transcript": "Pavid sent Joab out with the king's men and the whole Israelite",
+      "words": [
+        {
+          "word": "pavid",
+          "start": 6.89,
+          "end": 7.37,
+          "confidence": 0.6911621,
+          "punctuated_word": "Pavid"
+        },
+        {
+          "word": "sent",
+          "start": 7.37,
+          "end": 7.69,
+          "confidence": 0.9892578,
+          "punctuated_word": "sent"
+        },
+        {
+          "word": "joab",
+          "start": 7.69,
+          "end": 8.17,
+          "confidence": 0.9975586,
+          "punctuated_word": "Joab"
+        },
+        {
+          "word": "out",
+          "start": 8.17,
+          "end": 8.49,
+          "confidence": 0.98291016,
+          "punctuated_word": "out"
+        },
+        {
+          "word": "with",
+          "start": 8.49,
+          "end": 8.73,
+          "confidence": 0.99902344,
+          "punctuated_word": "with"
+        },
+        {
+          "word": "the",
+          "start": 8.73,
+          "end": 8.889999,
+          "confidence": 0.99902344,
+          "punctuated_word": "the"
+        },
+        {
+          "word": "king's",
+          "start": 8.889999,
+          "end": 9.21,
+          "confidence": 0.93408203,
+          "punctuated_word": "king's"
+        },
+        {
+          "word": "men",
+          "start": 9.21,
+          "end": 9.45,
+          "confidence": 0.9970703,
+          "punctuated_word": "men"
+        },
+        {
+          "word": "and",
+          "start": 9.45,
+          "end": 9.690001,
+          "confidence": 0.97802734,
+          "punctuated_word": "and"
+        },
+        {
+          "word": "the",
+          "start": 9.690001,
+          "end": 9.77,
+          "confidence": 0.99902344,
+          "punctuated_word": "the"
+        },
+        {
+          "word": "whole",
+          "start": 9.77,
+          "end": 10.01,
+          "confidence": 0.99902344,
+          "punctuated_word": "whole"
+        },
+        {
+          "word": "israelite",
+          "start": 10.01,
+          "end": 10.49,
+          "confidence": 0.9897461,
+          "punctuated_word": "Israelite"
+        }
+      ],
+      "start": 6.89,
+      "end": 10.49
+    },
+    {
+      "transcript": "army.",
+      "words": [
+        {
+          "word": "army",
+          "start": 10.51,
+          "end": 10.83,
+          "confidence": 0.9641113,
+          "punctuated_word": "army."
+        }
+      ],
+      "start": 10.51,
+      "end": 10.83
+    },
+    {
+      "transcript": "They destroyed the Ammonites and besieged Rabbah.",
+      "words": [
+        {
+          "word": "they",
+          "start": 11.429999,
+          "end": 11.75,
+          "confidence": 1.0,
+          "punctuated_word": "They"
+        },
+        {
+          "word": "destroyed",
+          "start": 11.75,
+          "end": 12.23,
+          "confidence": 0.9980469,
+          "punctuated_word": "destroyed"
+        },
+        {
+          "word": "the",
+          "start": 12.23,
+          "end": 12.389999,
+          "confidence": 0.9970703,
+          "punctuated_word": "the"
+        },
+        {
+          "word": "ammonites",
+          "start": 12.389999,
+          "end": 12.95,
+          "confidence": 0.9942627,
+          "punctuated_word": "Ammonites"
+        },
+        {
+          "word": "and",
+          "start": 12.95,
+          "end": 13.19,
+          "confidence": 0.9941406,
+          "punctuated_word": "and"
+        },
+        {
+          "word": "besieged",
+          "start": 13.19,
+          "end": 13.67,
+          "confidence": 0.99934894,
+          "punctuated_word": "besieged"
+        },
+        {
+          "word": "rabbah",
+          "start": 13.67,
+          "end": 14.15,
+          "confidence": 0.8717041,
+          "punctuated_word": "Rabbah."
+        }
+      ],
+      "start": 11.429999,
+      "end": 14.15
+    },
+    {
+      "transcript": "But David remained in Jerusalem.",
+      "words": [
+        {
+          "word": "but",
+          "start": 14.559999,
+          "end": 14.88,
+          "confidence": 0.99902344,
+          "punctuated_word": "But"
+        },
+        {
+          "word": "david",
+          "start": 14.88,
+          "end": 15.2,
+          "confidence": 1.0,
+          "punctuated_word": "David"
+        },
+        {
+          "word": "remained",
+          "start": 15.2,
+          "end": 15.599999,
+          "confidence": 1.0,
+          "punctuated_word": "remained"
+        },
+        {
+          "word": "in",
+          "start": 15.599999,
+          "end": 15.759999,
+          "confidence": 0.99902344,
+          "punctuated_word": "in"
+        },
+        {
+          "word": "jerusalem",
+          "start": 15.759999,
+          "end": 16.24,
+          "confidence": 0.94104004,
+          "punctuated_word": "Jerusalem."
+        }
+      ],
+      "start": 14.559999,
+      "end": 16.24
+    },
+    {
+      "transcript": "One evening, David got up from his bed and walked around the roof",
+      "words": [
+        {
+          "word": "one",
+          "start": 17.199999,
+          "end": 17.52,
+          "confidence": 1.0,
+          "punctuated_word": "One"
+        },
+        {
+          "word": "evening",
+          "start": 17.52,
+          "end": 18.0,
+          "confidence": 0.98217773,
+          "punctuated_word": "evening,"
+        },
+        {
+          "word": "david",
+          "start": 18.0,
+          "end": 18.4,
+          "confidence": 1.0,
+          "punctuated_word": "David"
+        },
+        {
+          "word": "got",
+          "start": 18.4,
+          "end": 18.64,
+          "confidence": 1.0,
+          "punctuated_word": "got"
+        },
+        {
+          "word": "up",
+          "start": 18.64,
+          "end": 18.8,
+          "confidence": 1.0,
+          "punctuated_word": "up"
+        },
+        {
+          "word": "from",
+          "start": 18.8,
+          "end": 18.96,
+          "confidence": 1.0,
+          "punctuated_word": "from"
+        },
+        {
+          "word": "his",
+          "start": 18.96,
+          "end": 19.119999,
+          "confidence": 1.0,
+          "punctuated_word": "his"
+        },
+        {
+          "word": "bed",
+          "start": 19.119999,
+          "end": 19.36,
+          "confidence": 1.0,
+          "punctuated_word": "bed"
+        },
+        {
+          "word": "and",
+          "start": 19.36,
+          "end": 19.52,
+          "confidence": 0.98535156,
+          "punctuated_word": "and"
+        },
+        {
+          "word": "walked",
+          "start": 19.52,
+          "end": 19.84,
+          "confidence": 1.0,
+          "punctuated_word": "walked"
+        },
+        {
+          "word": "around",
+          "start": 19.84,
+          "end": 20.08,
+          "confidence": 1.0,
+          "punctuated_word": "around"
+        },
+        {
+          "word": "the",
+          "start": 20.08,
+          "end": 20.16,
+          "confidence": 1.0,
+          "punctuated_word": "the"
+        },
+        {
+          "word": "roof",
+          "start": 20.16,
+          "end": 20.4,
+          "confidence": 1.0,
+          "punctuated_word": "roof"
+        }
+      ],
+      "start": 17.199999,
+      "end": 20.4
+    },
+    {
+      "transcript": "of the palace.",
+      "words": [
+        {
+          "word": "of",
+          "start": 20.56,
+          "end": 20.72,
+          "confidence": 0.99902344,
+          "punctuated_word": "of"
+        },
+        {
+          "word": "the",
+          "start": 20.72,
+          "end": 20.88,
+          "confidence": 1.0,
+          "punctuated_word": "the"
+        },
+        {
+          "word": "palace",
+          "start": 20.88,
+          "end": 21.199999,
+          "confidence": 0.98779297,
+          "punctuated_word": "palace."
+        }
+      ],
+      "start": 20.56,
+      "end": 21.199999
+    },
+    {
+      "transcript": "From the roof, he saw a woman",
+      "words": [
+        {
+          "word": "from",
+          "start": 21.71,
+          "end": 22.029999,
+          "confidence": 0.99902344,
+          "punctuated_word": "From"
+        },
+        {
+          "word": "the",
+          "start": 22.029999,
+          "end": 22.189999,
+          "confidence": 1.0,
+          "punctuated_word": "the"
+        },
+        {
+          "word": "roof",
+          "start": 22.189999,
+          "end": 22.59,
+          "confidence": 0.9824219,
+          "punctuated_word": "roof,"
+        },
+        {
+          "word": "he",
+          "start": 22.59,
+          "end": 22.67,
+          "confidence": 0.99902344,
+          "punctuated_word": "he"
+        },
+        {
+          "word": "saw",
+          "start": 22.67,
+          "end": 22.91,
+          "confidence": 0.99902344,
+          "punctuated_word": "saw"
+        },
+        {
+          "word": "a",
+          "start": 22.91,
+          "end": 23.07,
+          "confidence": 0.9970703,
+          "punctuated_word": "a"
+        },
+        {
+          "word": "woman",
+          "start": 23.07,
+          "end": 23.23,
+          "confidence": 0.99902344,
+          "punctuated_word": "woman"
+        }
+      ],
+      "start": 21.71,
+      "end": 23.23
+    },
+    {
+      "transcript": "paving.",
+      "words": [
+        {
+          "word": "paving",
+          "start": 23.54,
+          "end": 23.94,
+          "confidence": 0.96191406,
+          "punctuated_word": "paving."
+        }
+      ],
+      "start": 23.54,
+      "end": 23.94
+    },
+    {
+      "transcript": "Woman was very beautiful.",
+      "words": [
+        {
+          "word": "woman",
+          "start": 24.8,
+          "end": 25.199999,
+          "confidence": 0.99902344,
+          "punctuated_word": "Woman"
+        },
+        {
+          "word": "was",
+          "start": 25.199999,
+          "end": 25.439999,
+          "confidence": 1.0,
+          "punctuated_word": "was"
+        },
+        {
+          "word": "very",
+          "start": 25.439999,
+          "end": 25.759998,
+          "confidence": 0.9790039,
+          "punctuated_word": "very"
+        },
+        {
+          "word": "beautiful",
+          "start": 25.759998,
+          "end": 26.0,
+          "confidence": 0.83569336,
+          "punctuated_word": "beautiful."
+        }
+      ],
+      "start": 24.8,
+      "end": 26.0
+    },
+    {
+      "transcript": "And David sent someone to find out about her.",
+      "words": [
+        {
+          "word": "and",
+          "start": 26.51,
+          "end": 26.75,
+          "confidence": 1.0,
+          "punctuated_word": "And"
+        },
+        {
+          "word": "david",
+          "start": 26.75,
+          "end": 27.15,
+          "confidence": 1.0,
+          "punctuated_word": "David"
+        },
+        {
+          "word": "sent",
+          "start": 27.15,
+          "end": 27.470001,
+          "confidence": 0.99902344,
+          "punctuated_word": "sent"
+        },
+        {
+          "word": "someone",
+          "start": 27.470001,
+          "end": 27.95,
+          "confidence": 1.0,
+          "punctuated_word": "someone"
+        },
+        {
+          "word": "to",
+          "start": 27.95,
+          "end": 28.19,
+          "confidence": 1.0,
+          "punctuated_word": "to"
+        },
+        {
+          "word": "find",
+          "start": 28.19,
+          "end": 28.43,
+          "confidence": 1.0,
+          "punctuated_word": "find"
+        },
+        {
+          "word": "out",
+          "start": 28.43,
+          "end": 28.67,
+          "confidence": 1.0,
+          "punctuated_word": "out"
+        },
+        {
+          "word": "about",
+          "start": 28.67,
+          "end": 28.91,
+          "confidence": 0.99902344,
+          "punctuated_word": "about"
+        },
+        {
+          "word": "her",
+          "start": 28.91,
+          "end": 29.07,
+          "confidence": 0.9411621,
+          "punctuated_word": "her."
+        }
+      ],
+      "start": 26.51,
+      "end": 29.07
+    },
+    {
+      "transcript": "The man said,",
+      "words": [
+        {
+          "word": "the",
+          "start": 29.63,
+          "end": 29.869999,
+          "confidence": 1.0,
+          "punctuated_word": "The"
+        },
+        {
+          "word": "man",
+          "start": 29.869999,
+          "end": 30.109999,
+          "confidence": 0.99609375,
+          "punctuated_word": "man"
+        },
+        {
+          "word": "said",
+          "start": 30.109999,
+          "end": 30.35,
+          "confidence": 0.9633789,
+          "punctuated_word": "said,"
+        }
+      ],
+      "start": 29.63,
+      "end": 30.35
+    },
+    {
+      "transcript": "The entire army and went to Rabbah and attacked and captured it.",
+      "words": [
+        {
+          "word": "the",
+          "start": 534.75,
+          "end": 535.07,
+          "confidence": 0.73876953,
+          "punctuated_word": "The"
+        },
+        {
+          "word": "entire",
+          "start": 535.07,
+          "end": 535.46999997,
+          "confidence": 0.9970703,
+          "punctuated_word": "entire"
+        },
+        {
+          "word": "army",
+          "start": 535.46999997,
+          "end": 535.87,
+          "confidence": 0.9980469,
+          "punctuated_word": "army"
+        },
+        {
+          "word": "and",
+          "start": 535.87,
+          "end": 536.11,
+          "confidence": 0.98095703,
+          "punctuated_word": "and"
+        },
+        {
+          "word": "went",
+          "start": 536.11,
+          "end": 536.27,
+          "confidence": 1.0,
+          "punctuated_word": "went"
+        },
+        {
+          "word": "to",
+          "start": 536.27,
+          "end": 536.43,
+          "confidence": 0.99609375,
+          "punctuated_word": "to"
+        },
+        {
+          "word": "rabbah",
+          "start": 536.43,
+          "end": 536.9099998,
+          "confidence": 0.8343099,
+          "punctuated_word": "Rabbah"
+        },
+        {
+          "word": "and",
+          "start": 536.9099998,
+          "end": 537.1499999,
+          "confidence": 0.94384766,
+          "punctuated_word": "and"
+        },
+        {
+          "word": "attacked",
+          "start": 537.1499999,
+          "end": 537.55,
+          "confidence": 0.9970703,
+          "punctuated_word": "attacked"
+        },
+        {
+          "word": "and",
+          "start": 537.55,
+          "end": 537.79,
+          "confidence": 0.99609375,
+          "punctuated_word": "and"
+        },
+        {
+          "word": "captured",
+          "start": 537.79,
+          "end": 538.03,
+          "confidence": 0.99902344,
+          "punctuated_word": "captured"
+        },
+        {
+          "word": "it",
+          "start": 538.03,
+          "end": 538.1899998,
+          "confidence": 0.9748535,
+          "punctuated_word": "it."
+        }
+      ],
+      "start": 534.75,
+      "end": 538.1899998
+    },
+    {
+      "transcript": "David took the crown from the king's head",
+      "words": [
+        {
+          "word": "david",
+          "start": 538.72,
+          "end": 539.12,
+          "confidence": 1.0,
+          "punctuated_word": "David"
+        },
+        {
+          "word": "took",
+          "start": 539.12,
+          "end": 539.36,
+          "confidence": 1.0,
+          "punctuated_word": "took"
+        },
+        {
+          "word": "the",
+          "start": 539.36,
+          "end": 539.52,
+          "confidence": 1.0,
+          "punctuated_word": "the"
+        },
+        {
+          "word": "crown",
+          "start": 539.52,
+          "end": 539.76,
+          "confidence": 0.9980469,
+          "punctuated_word": "crown"
+        },
+        {
+          "word": "from",
+          "start": 539.76,
+          "end": 539.92,
+          "confidence": 0.99902344,
+          "punctuated_word": "from"
+        },
+        {
+          "word": "the",
+          "start": 539.92,
+          "end": 540.08,
+          "confidence": 0.99902344,
+          "punctuated_word": "the"
+        },
+        {
+          "word": "king's",
+          "start": 540.08,
+          "end": 540.4,
+          "confidence": 0.98950195,
+          "punctuated_word": "king's"
+        },
+        {
+          "word": "head",
+          "start": 540.4,
+          "end": 540.56,
+          "confidence": 1.0,
+          "punctuated_word": "head"
+        }
+      ],
+      "start": 538.72,
+      "end": 540.56
+    },
+    {
+      "transcript": "and it was placed on his own head.",
+      "words": [
+        {
+          "word": "and",
+          "start": 540.89,
+          "end": 541.05,
+          "confidence": 1.0,
+          "punctuated_word": "and"
+        },
+        {
+          "word": "it",
+          "start": 541.05,
+          "end": 541.21,
+          "confidence": 0.9980469,
+          "punctuated_word": "it"
+        },
+        {
+          "word": "was",
+          "start": 541.21,
+          "end": 541.29,
+          "confidence": 1.0,
+          "punctuated_word": "was"
+        },
+        {
+          "word": "placed",
+          "start": 541.29,
+          "end": 541.61,
+          "confidence": 1.0,
+          "punctuated_word": "placed"
+        },
+        {
+          "word": "on",
+          "start": 541.61,
+          "end": 541.77,
+          "confidence": 0.99902344,
+          "punctuated_word": "on"
+        },
+        {
+          "word": "his",
+          "start": 541.77,
+          "end": 541.93,
+          "confidence": 1.0,
+          "punctuated_word": "his"
+        },
+        {
+          "word": "own",
+          "start": 541.93,
+          "end": 542.09,
+          "confidence": 0.99902344,
+          "punctuated_word": "own"
+        },
+        {
+          "word": "head",
+          "start": 542.09,
+          "end": 542.25,
+          "confidence": 0.7739258,
+          "punctuated_word": "head."
+        }
+      ],
+      "start": 540.89,
+      "end": 542.25
+    },
+    {
+      "transcript": "It weighed a talent of gold,",
+      "words": [
+        {
+          "word": "it",
+          "start": 542.56,
+          "end": 542.8,
+          "confidence": 0.99902344,
+          "punctuated_word": "It"
+        },
+        {
+          "word": "weighed",
+          "start": 542.8,
+          "end": 543.04,
+          "confidence": 0.98535156,
+          "punctuated_word": "weighed"
+        },
+        {
+          "word": "a",
+          "start": 543.04,
+          "end": 543.2,
+          "confidence": 0.99902344,
+          "punctuated_word": "a"
+        },
+        {
+          "word": "talent",
+          "start": 543.2,
+          "end": 543.440001,
+          "confidence": 0.86572266,
+          "punctuated_word": "talent"
+        },
+        {
+          "word": "of",
+          "start": 543.440001,
+          "end": 543.6,
+          "confidence": 0.99902344,
+          "punctuated_word": "of"
+        },
+        {
+          "word": "gold",
+          "start": 543.6,
+          "end": 543.84,
+          "confidence": 0.7373047,
+          "punctuated_word": "gold,"
+        }
+      ],
+      "start": 542.56,
+      "end": 543.84
+    },
+    {
+      "transcript": "it was set with precious stones.",
+      "words": [
+        {
+          "word": "it",
+          "start": 544.21,
+          "end": 544.45,
+          "confidence": 1.0,
+          "punctuated_word": "it"
+        },
+        {
+          "word": "was",
+          "start": 544.45,
+          "end": 544.53,
+          "confidence": 1.0,
+          "punctuated_word": "was"
+        },
+        {
+          "word": "set",
+          "start": 544.53,
+          "end": 544.77,
+          "confidence": 1.0,
+          "punctuated_word": "set"
+        },
+        {
+          "word": "with",
+          "start": 544.77,
+          "end": 545.01,
+          "confidence": 1.0,
+          "punctuated_word": "with"
+        },
+        {
+          "word": "precious",
+          "start": 545.01,
+          "end": 545.33,
+          "confidence": 1.0,
+          "punctuated_word": "precious"
+        },
+        {
+          "word": "stones",
+          "start": 545.33,
+          "end": 545.65,
+          "confidence": 0.99365234,
+          "punctuated_word": "stones."
+        }
+      ],
+      "start": 544.21,
+      "end": 545.65
+    },
+    {
+      "transcript": "David took a great quantity of plunder from the city.",
+      "words": [
+        {
+          "word": "david",
+          "start": 546.469999,
+          "end": 547.03,
+          "confidence": 1.0,
+          "punctuated_word": "David"
+        },
+        {
+          "word": "took",
+          "start": 547.03,
+          "end": 547.2699995,
+          "confidence": 1.0,
+          "punctuated_word": "took"
+        },
+        {
+          "word": "a",
+          "start": 547.2699995,
+          "end": 547.51,
+          "confidence": 1.0,
+          "punctuated_word": "a"
+        },
+        {
+          "word": "great",
+          "start": 547.51,
+          "end": 547.75,
+          "confidence": 1.0,
+          "punctuated_word": "great"
+        },
+        {
+          "word": "quantity",
+          "start": 547.75,
+          "end": 548.15,
+          "confidence": 0.99902344,
+          "punctuated_word": "quantity"
+        },
+        {
+          "word": "of",
+          "start": 548.15,
+          "end": 548.309999,
+          "confidence": 1.0,
+          "punctuated_word": "of"
+        },
+        {
+          "word": "plunder",
+          "start": 548.309999,
+          "end": 548.629999,
+          "confidence": 0.99658203,
+          "punctuated_word": "plunder"
+        },
+        {
+          "word": "from",
+          "start": 548.629999,
+          "end": 548.79,
+          "confidence": 0.99902344,
+          "punctuated_word": "from"
+        },
+        {
+          "word": "the",
+          "start": 548.79,
+          "end": 548.87,
+          "confidence": 1.0,
+          "punctuated_word": "the"
+        },
+        {
+          "word": "city",
+          "start": 548.87,
+          "end": 549.11,
+          "confidence": 0.7095947,
+          "punctuated_word": "city."
+        }
+      ],
+      "start": 546.469999,
+      "end": 549.11
+    },
+    {
+      "transcript": "And brought out the people who were there",
+      "words": [
+        {
+          "word": "and",
+          "start": 549.75,
+          "end": 550.47,
+          "confidence": 0.93603516,
+          "punctuated_word": "And"
+        },
+        {
+          "word": "brought",
+          "start": 550.47,
+          "end": 550.79,
+          "confidence": 0.99902344,
+          "punctuated_word": "brought"
+        },
+        {
+          "word": "out",
+          "start": 550.79,
+          "end": 551.03,
+          "confidence": 1.0,
+          "punctuated_word": "out"
+        },
+        {
+          "word": "the",
+          "start": 551.03,
+          "end": 551.27,
+          "confidence": 0.99902344,
+          "punctuated_word": "the"
+        },
+        {
+          "word": "people",
+          "start": 551.27,
+          "end": 551.51,
+          "confidence": 1.0,
+          "punctuated_word": "people"
+        },
+        {
+          "word": "who",
+          "start": 551.51,
+          "end": 551.67,
+          "confidence": 0.9980469,
+          "punctuated_word": "who"
+        },
+        {
+          "word": "were",
+          "start": 551.67,
+          "end": 551.83,
+          "confidence": 0.99609375,
+          "punctuated_word": "were"
+        },
+        {
+          "word": "there",
+          "start": 551.83,
+          "end": 551.99,
+          "confidence": 0.99902344,
+          "punctuated_word": "there"
+        }
+      ],
+      "start": 549.75,
+      "end": 551.99
+    },
+    {
+      "transcript": "consigning them to labor with saws and with iron picks and axes.",
+      "words": [
+        {
+          "word": "consigning",
+          "start": 552.289999,
+          "end": 552.929998,
+          "confidence": 0.9980469,
+          "punctuated_word": "consigning"
+        },
+        {
+          "word": "them",
+          "start": 552.929998,
+          "end": 553.089998,
+          "confidence": 1.0,
+          "punctuated_word": "them"
+        },
+        {
+          "word": "to",
+          "start": 553.089998,
+          "end": 553.25,
+          "confidence": 0.99902344,
+          "punctuated_word": "to"
+        },
+        {
+          "word": "labor",
+          "start": 553.25,
+          "end": 553.57,
+          "confidence": 0.9951172,
+          "punctuated_word": "labor"
+        },
+        {
+          "word": "with",
+          "start": 553.57,
+          "end": 553.81,
+          "confidence": 1.0,
+          "punctuated_word": "with"
+        },
+        {
+          "word": "saws",
+          "start": 553.81,
+          "end": 554.289999,
+          "confidence": 0.953125,
+          "punctuated_word": "saws"
+        },
+        {
+          "word": "and",
+          "start": 554.289999,
+          "end": 554.449999,
+          "confidence": 0.95410156,
+          "punctuated_word": "and"
+        },
+        {
+          "word": "with",
+          "start": 554.449999,
+          "end": 554.609999,
+          "confidence": 0.9951172,
+          "punctuated_word": "with"
+        },
+        {
+          "word": "iron",
+          "start": 554.609999,
+          "end": 554.929998,
+          "confidence": 1.0,
+          "punctuated_word": "iron"
+        },
+        {
+          "word": "picks",
+          "start": 554.929998,
+          "end": 555.25,
+          "confidence": 0.9873047,
+          "punctuated_word": "picks"
+        },
+        {
+          "word": "and",
+          "start": 555.25,
+          "end": 555.41,
+          "confidence": 0.9902344,
+          "punctuated_word": "and"
+        },
+        {
+          "word": "axes",
+          "start": 555.41,
+          "end": 555.73,
+          "confidence": 0.7898763,
+          "punctuated_word": "axes."
+        }
+      ],
+      "start": 552.289999,
+      "end": 555.73
+    },
+    {
+      "transcript": "And he made them work at brick making.",
+      "words": [
+        {
+          "word": "and",
+          "start": 556.21,
+          "end": 556.369999,
+          "confidence": 1.0,
+          "punctuated_word": "And"
+        },
+        {
+          "word": "he",
+          "start": 556.369999,
+          "end": 556.529999,
+          "confidence": 1.0,
+          "punctuated_word": "he"
+        },
+        {
+          "word": "made",
+          "start": 556.529999,
+          "end": 556.769999,
+          "confidence": 1.0,
+          "punctuated_word": "made"
+        },
+        {
+          "word": "them",
+          "start": 556.769999,
+          "end": 556.929998,
+          "confidence": 1.0,
+          "punctuated_word": "them"
+        },
+        {
+          "word": "work",
+          "start": 556.929998,
+          "end": 557.17,
+          "confidence": 1.0,
+          "punctuated_word": "work"
+        },
+        {
+          "word": "at",
+          "start": 557.17,
+          "end": 557.33,
+          "confidence": 0.9970703,
+          "punctuated_word": "at"
+        },
+        {
+          "word": "brick",
+          "start": 557.33,
+          "end": 557.57,
+          "confidence": 0.9951172,
+          "punctuated_word": "brick"
+        },
+        {
+          "word": "making",
+          "start": 557.57,
+          "end": 557.89,
+          "confidence": 0.8745117,
+          "punctuated_word": "making."
+        }
+      ],
+      "start": 556.21,
+      "end": 557.89
+    },
+    {
+      "transcript": "David did this to all the Ammonite towns",
+      "words": [
+        {
+          "word": "david",
+          "start": 558.56,
+          "end": 558.96,
+          "confidence": 1.0,
+          "punctuated_word": "David"
+        },
+        {
+          "word": "did",
+          "start": 558.96,
+          "end": 559.199999,
+          "confidence": 1.0,
+          "punctuated_word": "did"
+        },
+        {
+          "word": "this",
+          "start": 559.199999,
+          "end": 559.359999,
+          "confidence": 0.9980469,
+          "punctuated_word": "this"
+        },
+        {
+          "word": "to",
+          "start": 559.359999,
+          "end": 559.599998,
+          "confidence": 0.99902344,
+          "punctuated_word": "to"
+        },
+        {
+          "word": "all",
+          "start": 559.599998,
+          "end": 559.84,
+          "confidence": 0.99902344,
+          "punctuated_word": "all"
+        },
+        {
+          "word": "the",
+          "start": 559.84,
+          "end": 560.0,
+          "confidence": 0.99609375,
+          "punctuated_word": "the"
+        },
+        {
+          "word": "ammonite",
+          "start": 560.0,
+          "end": 560.56,
+          "confidence": 0.92297363,
+          "punctuated_word": "Ammonite"
+        },
+        {
+          "word": "towns",
+          "start": 560.56,
+          "end": 560.88,
+          "confidence": 0.9970703,
+          "punctuated_word": "towns"
+        }
+      ],
+      "start": 558.56,
+      "end": 560.88
+    },
+    {
+      "transcript": "then he and his entire army returned to Jerusalem.",
+      "words": [
+        {
+          "word": "then",
+          "start": 561.369999,
+          "end": 561.689999,
+          "confidence": 0.8881836,
+          "punctuated_word": "then"
+        },
+        {
+          "word": "he",
+          "start": 561.689999,
+          "end": 562.009998,
+          "confidence": 0.99902344,
+          "punctuated_word": "he"
+        },
+        {
+          "word": "and",
+          "start": 562.009998,
+          "end": 562.25,
+          "confidence": 0.99609375,
+          "punctuated_word": "and"
+        },
+        {
+          "word": "his",
+          "start": 562.25,
+          "end": 562.49,
+          "confidence": 1.0,
+          "punctuated_word": "his"
+        },
+        {
+          "word": "entire",
+          "start": 562.49,
+          "end": 562.89,
+          "confidence": 1.0,
+          "punctuated_word": "entire"
+        },
+        {
+          "word": "army",
+          "start": 562.89,
+          "end": 563.289999,
+          "confidence": 0.99902344,
+          "punctuated_word": "army"
+        },
+        {
+          "word": "returned",
+          "start": 563.289999,
+          "end": 563.769999,
+          "confidence": 0.99609375,
+          "punctuated_word": "returned"
+        },
+        {
+          "word": "to",
+          "start": 563.769999,
+          "end": 563.929998,
+          "confidence": 1.0,
+          "punctuated_word": "to"
+        },
+        {
+          "word": "jerusalem",
+          "start": 563.929998,
+          "end": 564.329998,
+          "confidence": 0.99450684,
+          "punctuated_word": "Jerusalem."
+        }
+      ],
+      "start": 561.369999,
+      "end": 564.329998
+    }
+  ]
+}

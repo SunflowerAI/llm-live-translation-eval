@@ -2,3 +2,6 @@
 secrets_env.py
 *.pyc
 repomix-output.xml
+
+# Live translation test-data artifacts (large / regenerable)
+live_test_data/audio/
