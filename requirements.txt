@@ -1,0 +1,10 @@
+anthropic
+groq
+mistralai
+google-genai
+cohere
+requests
+scipy
+numpy
+matplotlib
+aquarel

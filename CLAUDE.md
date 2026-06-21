@@ -1,0 +1,41 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## What this is
+
+A benchmark harness that compares **LLM/translation-API translation quality** using **LLMs as judges**. Batch, sentence-level today; intended to be adapted for live/streaming translation later (see README "Toward live translation"). There is no CLI and no test runner — `main.py` *is* the experiment config.
+
+## Running
+
+- Run an experiment: edit `main.py` to select languages + a model roster + a judge panel, then `python main.py`. It writes an `out_*.json`. Historical experiments are kept as commented blocks; an active block runs and a `sys.exit()` guards the rest.
+- Self-test the stats model: `python davidson_model.py` (inline asserts; the only thing resembling a test suite).
+- Dependencies: `pip install -r requirements.txt`.
+- Secrets: create git-ignored `secrets_env.py` defining the `*_API_KEY` constants (`OPENROUTER_API_KEY`, `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `MISTRAL_API_KEY`, `COHERE_API_KEY`, `DEEPL_API_KEY`, `LINGVANEX_API_KEY`, `NUENKI_API_KEY`). Imported via `from secrets_env import *`.
+
+## Architecture
+
+Two pipelines share the inference abstraction and cache:
+
+1. **Quality scoring** (`run_evaluation.py`, entry `evaluate_datasets`). For each (language, category, sentence): every tested model translates; identical translations are deduped; each judge LLM scores all distinct translations 0–100 in one prompt (IDs **deterministically shuffled** by content+judge to avoid positional bias); scores become `RankItem`s; aggregated per (category, judge) with mean/median/std and **Mann–Whitney U** p-values.
+2. **Coherence / round-trip** (`coherence.py`, entry `inference_coherence_batch`). Repeated EN→target→EN "Chinese whispers" to a depth; judges rate drift from the original; `chart_coherence` plots score-vs-depth.
+
+**Inference abstraction** (`typedefinitions.py`): providers implement either `AbstractExecutableTranslator.translate(...)` (model under test) or `AbstractGenericInference.infer(...)` (judge). One concrete class per `*_inference_source.py`. `OpenrouterGenericInference` is the workhorse judge.
+
+**Data & rosters:** `dataset.py` → `SENTENCES_LIST` (category → English strings). `test_data.py` → lists of `TestedEntry` (model + service + temp + thinking; the same model recurs at multiple temps) and judge panels. `main.py` wires a roster + a `compare_models` judge list into `evaluate_datasets`.
+
+**Caching** (`sqlitekv.py`, `cache.db`): thread-safe WAL SQLite KV. **Both translations and judge outputs are cached**, keyed by md5(prompt)+model identity (`utils.py`, `run_evaluation.py`). Re-runs are cheap; changing a prompt invalidates only affected keys. `cache.db` is committed. `inference_cache.py` is a superseded JSON cache — do not use it.
+
+## Conventions & gotchas
+
+- **Refusal sentinel `483`**: `generate_translation_prompt` tells models to emit `483` to refuse; a `483` or <3-char translation is treated as failure and scored **`-483`** (a magic number that flows into outputs — filter it when analyzing).
+- **`TestedEntry` identity** is `unique_id()` (name+company+service+temp+thinking). It is both the cache discriminator and the comparison key — two entries differing only by temp are distinct competitors.
+- **`TranslatableLanguage`** (`typedefinitions.py`) is canonical; it carries provider code maps (`deepl_code()`, `nuenki_code()`). Not all providers support all languages — DeepL/Lingvanex rosters are pruned for Welsh/Swahili (see the `_nodeepl_nolingvanex*` roster variants and output files).
+- **`DavidsonBT`** (`davidson_model.py`) and `run_evaluation_old.py` are a *legacy pairwise* approach. `DavidsonBT` is still imported in `run_evaluation.py` but unused — current scoring is absolute 0–100, not pairwise. Don't assume the imported `DavidsonBT` is live.
+- **Concurrency:** one thread per sentence; retries are 3× with jittered `time.sleep` back-off, plus scattered random sleeps to dodge rate limits. Failures degrade gracefully (skip/continue, print) rather than raising.
+- **Judge JSON parsing** reads the *last* triple-backtick block; prompts must keep that contract if edited.
+- Large committed artifacts (`cache.db` ~77 MB, `latency.jsonl`, `out_*.json`, `*_old.*`) are intentional for reproducibility — don't "clean them up" without asking.
+
+## Project rules in effect
+
+`~/.claude/rules/` apply here: use **Context7 MCP** for any library/API/SDK docs question; for Hobby splines use the pinned upstream `hobby.py`; follow the prose/emphasis writing-style rules for any user-facing copy.
