@@ -1,6 +1,6 @@
 from typedefinitions import *
 from cohere import Client
-from utils import generate_translation_prompt
+from utils import generate_translation_prompt, messages_to_flat_prompt
 
 
 class CohereExecutableTranslator(AbstractExecutableTranslator):
@@ -18,8 +18,14 @@ class CohereExecutableTranslator(AbstractExecutableTranslator):
         target_lang: TranslatableLanguage,
         text: str,
         temperature: float,
+        context: list[tuple[str, str]] | None = None,
     ) -> str:
-        prompt = generate_translation_prompt(source_lang, target_lang, text)
+        # Cohere's generate endpoint takes a single prompt, so flatten the chat
+        # messages (system + preceding pairs + current segment) into a transcript.
+        messages = generate_translation_prompt(
+            source_lang, target_lang, text, context
+        )
+        prompt = messages_to_flat_prompt(messages)
 
         response = self.client.generate(
             model=self.model_slug,

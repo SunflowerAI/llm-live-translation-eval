@@ -20,6 +20,22 @@ class TranslatableLanguage(Enum):
     Welsh = "Welsh"
     Swahili = "Swahili"
     Esperanto = "Esperanto"
+    # Live-translation language set (2026-06-21). Values are the human-readable
+    # names sent to the LLMs in the prompt (the OpenRouter-only live roster reads
+    # `.value`; it never calls deepl_code/nuenki_code, so no codes are needed).
+    SimplifiedChinese = "Simplified Chinese"
+    Cantonese = "Cantonese"
+    Indonesian = "Indonesian"
+    Farsi = "Farsi"
+    Spanish = "Spanish"
+    BrazilianPortuguese = "Brazilian Portuguese"
+    Burmese = "Burmese"
+    Khmer = "Khmer"
+    Bislama = "Bislama"
+    Maori = "Māori"
+    Samoan = "Samoan"
+    Tongan = "Tongan"
+    Fijian = "Fijian"
 
     def nuenki_code(self) -> str:
         if self == TranslatableLanguage.EuropeanSpanish:
@@ -84,6 +100,14 @@ class ModelName(Enum):
     Claude_4_Opus = "Claude 4 Opus"
     GPT_3_5_Turbo = "GPT 3.5 Turbo"
     Aya_Expanse_32B = "Aya Expanse 32B"
+    # Gemini 2.5 Flash Lite price-class roster (OpenRouter, ~$0.50/M blended)
+    Gemini_25_Flash_Lite = "Gemini 2.5 Flash Lite"
+    GPT_5_Nano = "GPT 5 Nano"
+    Seed_20_Mini = "Seed 2.0 Mini"
+    Gemma4_31B = "Gemma 4 31B"
+    GLM_47_Flash = "GLM 4.7 Flash"
+    Hermes_4_70B = "Hermes 4 70B"
+    Mistral_Small_32_24B = "Mistral Small 3.2 24B"
 
 
 class ModelCompany(Enum):
@@ -99,6 +123,9 @@ class ModelCompany(Enum):
     Nuenki = "Nuenki"
     Deepseek = "Deepseek"
     Cohere = "Cohere"
+    ByteDance = "ByteDance"
+    ZhipuAI = "Zhipu AI"
+    NousResearch = "Nous Research"
 
     def colour(self):
         match self:
@@ -124,6 +151,12 @@ class ModelCompany(Enum):
                 return "#6bab90"  # brand colour
             case ModelCompany.Cohere:
                 return "#f0dff3"
+            case ModelCompany.ByteDance:
+                return "#325AB4"  # deep blue
+            case ModelCompany.ZhipuAI:
+                return "#1A73C2"  # GLM blue
+            case ModelCompany.NousResearch:
+                return "#111111"  # near-black
             case _:
                 return "black"  # default color for unknown company
 
@@ -148,8 +181,14 @@ class AbstractExecutableTranslator(ABC):
         target_lang: TranslatableLanguage,
         text: str,
         temperature: float,
+        context: list[tuple[str, str]] | None = None,
     ):
-        """Translate"""
+        """Translate ``text`` from ``source_lang`` to ``target_lang``.
+
+        ``context`` carries up to the five preceding ``(source, translation)``
+        segment pairs (oldest first) for live, segment-by-segment translation;
+        ``None`` means document mode / no context.
+        """
         raise NotImplementedError
 
     @abstractmethod

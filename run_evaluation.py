@@ -13,7 +13,7 @@ import numpy as np
 import random
 import re
 from scipy.stats import mannwhitneyu
-from utils import md5hash, get_translation_with_cache_check
+from utils import md5hash, get_translation_with_cache_check, inference_slot
 
 
 def all_non_duplicate_sets(input_list):
@@ -83,7 +83,73 @@ def process_sentence(
 
     log_sentence_data("Translations", translations)
 
-    for comparison_model, comparison_inference in compare_models:
+    judge_translations(
+        language,
+        category,
+        sentence,
+        translations,
+        refusals,
+        cache,
+        compare_models,
+        output_queue,
+    )
+
+
+def judge_translations(
+    language,
+    category,
+    sentence,
+    translations,
+    refusals,
+    cache,
+    compare_models,
+    output_queue,
+    context_pairs=None,
+):
+    """Have each judge score every distinct translation of ``sentence``.
+
+    ``translations`` maps each distinct translation text to the list of tested
+    models that produced it; ``refusals`` is the list of models that refused.
+    Shared by the batch (``process_sentence``) and live pipelines so the judge
+    prompt, deterministic ID shuffling, and JSON parsing contract stay identical.
+
+    ``context_pairs`` is an optional list of ``(source_segment, best_translation)``
+    pairs for the preceding segments (oldest first) of a live talk. When given,
+    the judge is shown that running source-and-translation context and asked to
+    score each candidate for accuracy *and* coherence with it. The translation in
+    each pair is the one the judge panel previously rated best, so the judge sees
+    a single coherent thread rather than every model's history. When ``None`` the
+    prompt is byte-identical to the batch prompt, so the existing judge cache
+    stays valid.
+
+    Returns the translation text rated best for ``sentence`` (highest mean score
+    across the judge panel), or ``None`` if nothing scored — used by the live
+    pipeline to extend ``context_pairs`` for the next segment.
+    """
+    context_block = ""
+    if context_pairs:
+        transcript = "\n".join(
+            f"Source: {src}\nTranslation: {best}" for src, best in context_pairs
+        )
+        context_block = (
+            "Preceding context (the immediately prior segments of the same live "
+            "talk, each with its best accepted translation — for reference only, "
+            "do NOT score these). The original text below continues directly from "
+            "this, so also judge whether each translation is coherent with it: "
+            "resolved references, and consistent terminology and register.\n"
+            f"```\n{transcript}\n```\n\n"
+        )
+
+    scores_by_text = defaultdict(list)
+
+    def run_judge(comparison_model, comparison_inference):
+        """Score every distinct translation with one judge.
+
+        Emits ``RankItem``s (including ``-483`` refusals) to ``output_queue`` and
+        returns ``{translation_text: score}`` for this judge so the caller can
+        aggregate the panel. Judges are independent, so this runs concurrently.
+        """
+        local_scores = {}
         randomised_id_lookup = {}
 
         prompt_translations_text = ""
@@ -119,7 +185,7 @@ Evaluation order:
 - *Consistency* in formality, both within the translation and compared to the original
 - Idiomaticity & style (native phrasing? Remember, no stylistic judgements)
 
-Original text:
+{context_block}Original text:
 ```{sentence}```
 
 Translations into `{language.value}`:
@@ -149,7 +215,10 @@ This will be parsed, so keep your output exact, and remember the triple-backtick
 
             for i in range(3):
                 try:
-                    comparison_data = comparison_inference.infer(comparison_prompt, 0)
+                    with inference_slot():
+                        comparison_data = comparison_inference.infer(
+                            comparison_prompt, 0
+                        )
                     if comparison_data:
                         cache.set(key, comparison_data)
                         break
@@ -164,7 +233,7 @@ This will be parsed, so keep your output exact, and remember the triple-backtick
 
         if not comparison_data:
             print("Failed to get data for", comparison_model, sentence)
-            continue
+            return local_scores
 
         log_sentence_data("Resp", comparison_data)
 
@@ -189,7 +258,7 @@ This will be parsed, so keep your output exact, and remember the triple-backtick
                     "Error handling JSON - could not parse!!!",
                     f"full data: [{comparison_data}]",
                 )
-                break
+                return local_scores
 
             if len(scores_list) != len(randomised_id_lookup.keys()):
                 print("Incorrect response length on", comparison_data)
@@ -212,6 +281,7 @@ This will be parsed, so keep your output exact, and remember the triple-backtick
                 entry_score = float(entry["score"])
                 if entry_id in randomised_id_lookup:
                     text, models = randomised_id_lookup[entry_id]
+                    local_scores[text] = entry_score
                     for testing_model in models:
                         output_queue.put(
                             RankItem(
@@ -235,6 +305,24 @@ This will be parsed, so keep your output exact, and remember the triple-backtick
                 comparison_model,
                 f"full data: [{comparison_data}]",
             )
+
+        return local_scores
+
+    # Judges are independent; run the panel concurrently. Actual API concurrency
+    # is still bounded by the global inference_slot() semaphore.
+    with ThreadPoolExecutor(max_workers=max(1, len(compare_models))) as executor:
+        for local_scores in executor.map(
+            lambda cm: run_judge(cm[0], cm[1]), compare_models
+        ):
+            for text, score in local_scores.items():
+                scores_by_text[text].append(score)
+
+    if not scores_by_text:
+        return None
+    return max(
+        scores_by_text,
+        key=lambda t: sum(scores_by_text[t]) / len(scores_by_text[t]),
+    )
 
 
 def compare_set(language, target_models, cache, compare_models):

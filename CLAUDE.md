@@ -24,7 +24,7 @@ Two pipelines share the inference abstraction and cache:
 
 **Data & rosters:** `dataset.py` → `SENTENCES_LIST` (category → English strings). `test_data.py` → lists of `TestedEntry` (model + service + temp + thinking; the same model recurs at multiple temps) and judge panels. `main.py` wires a roster + a `compare_models` judge list into `evaluate_datasets`.
 
-**Caching** (`sqlitekv.py`, `cache.db`): thread-safe WAL SQLite KV. **Both translations and judge outputs are cached**, keyed by md5(prompt)+model identity (`utils.py`, `run_evaluation.py`). Re-runs are cheap; changing a prompt invalidates only affected keys. `cache.db` is committed. `inference_cache.py` is a superseded JSON cache — do not use it.
+**Caching** (`sqlitekv.py`, `cache.db`): thread-safe WAL SQLite KV. **Both translations and judge outputs are cached**, keyed by md5(prompt)+model identity (`utils.py`, `run_evaluation.py`). Re-runs are cheap; changing a prompt invalidates only affected keys. `cache.db` is **git-ignored** (it grew too large to track; it lives only on disk and re-runs rebuild it). `inference_cache.py` is a superseded JSON cache — do not use it.
 
 ## Conventions & gotchas
 
@@ -34,7 +34,7 @@ Two pipelines share the inference abstraction and cache:
 - **`DavidsonBT`** (`davidson_model.py`) and `run_evaluation_old.py` are a *legacy pairwise* approach. `DavidsonBT` is still imported in `run_evaluation.py` but unused — current scoring is absolute 0–100, not pairwise. Don't assume the imported `DavidsonBT` is live.
 - **Concurrency:** one thread per sentence; retries are 3× with jittered `time.sleep` back-off, plus scattered random sleeps to dodge rate limits. Failures degrade gracefully (skip/continue, print) rather than raising.
 - **Judge JSON parsing** reads the *last* triple-backtick block; prompts must keep that contract if edited.
-- Large committed artifacts (`cache.db` ~77 MB, `latency.jsonl`, `out_*.json`, `*_old.*`) are intentional for reproducibility — don't "clean them up" without asking.
+- Committed artifacts (`out_*.json`, `*_old.*`) are intentional for reproducibility — don't "clean them up" without asking. (`cache.db` and `latency.jsonl` are git-ignored — too large to track — and kept only on disk; both were purged from history.)
 
 ## Project rules in effect
 

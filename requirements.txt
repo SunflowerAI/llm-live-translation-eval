@@ -1,6 +1,6 @@
 anthropic
 groq
-mistralai
+mistralai<2  # v2 renamed the `Mistral` entrypoint the code imports
 google-genai
 cohere
 requests

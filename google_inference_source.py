@@ -1,6 +1,10 @@
 from typedefinitions import *
 import requests
-from utils import generate_translation_prompt
+from utils import (
+    generate_translation_prompt,
+    split_system_messages,
+    messages_to_genai_contents,
+)
 from google import genai
 
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
@@ -22,8 +26,13 @@ class GoogleExecutableTranslator(AbstractExecutableTranslator):
         target_lang: TranslatableLanguage,
         text: str,
         temperature: float,
+        context: list[tuple[str, str]] | None = None,
     ) -> str:
-        prompt = generate_translation_prompt(source_lang, target_lang, text)
+        messages = generate_translation_prompt(
+            source_lang, target_lang, text, context
+        )
+        system_prompt, _ = split_system_messages(messages)
+        contents = messages_to_genai_contents(messages)
 
         think_budget = None
         if not self.thinking:
@@ -31,9 +40,10 @@ class GoogleExecutableTranslator(AbstractExecutableTranslator):
 
         response = self.client.models.generate_content(
             model=self.model_slug,
-            contents=prompt,
+            contents=contents,
             config=genai.types.GenerateContentConfig(
                 temperature=temperature,
+                system_instruction=system_prompt,
                 thinking_config=genai.types.ThinkingConfig(
                     thinking_budget=think_budget
                 ),

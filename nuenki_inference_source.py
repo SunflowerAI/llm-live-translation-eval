@@ -16,7 +16,10 @@ class NuenkiHybridExecutableTranslator(AbstractExecutableTranslator):
         target_lang: TranslatableLanguage,
         text: str,
         temperature: float,
+        context: list[tuple[str, str]] | None = None,
     ) -> str:
+        # Nuenki's hybrid translator is a dedicated translation API with no chat
+        # context; ``context`` is accepted for interface parity and ignored.
         response = requests.post(
             self.api_url,
             json={

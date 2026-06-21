@@ -2,6 +2,19 @@
 secrets_env.py
 *.pyc
 repomix-output.xml
+.venv/
+venv/
+
+# Verbose per-run process logs (regenerable; not a reproducibility artifact)
+run_*.log
+
+# Local SQLite cache — too large to track (regenerable; re-runs rebuild it)
+cache.db
+cache.db-shm
+cache.db-wal
+
+# Latency log — large and regenerable; kept on disk only
+latency.jsonl
 
 # Live translation test-data artifacts (large / regenerable)
 live_test_data/audio/

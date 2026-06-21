@@ -18,13 +18,16 @@ class MistralExecutableTranslator(AbstractExecutableTranslator):
         target_lang: TranslatableLanguage,
         text: str,
         temperature: float,
+        context: list[tuple[str, str]] | None = None,
     ) -> str:
-        prompt = generate_translation_prompt(source_lang, target_lang, text)
+        messages = generate_translation_prompt(
+            source_lang, target_lang, text, context
+        )
 
         response = self.client.chat.complete(
             model=self.model_slug,
             temperature=temperature,
-            messages=[{"role": "user", "content": prompt}],
+            messages=messages,
         )
 
         return response.choices[0].message.content

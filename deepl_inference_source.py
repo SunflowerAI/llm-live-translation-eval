@@ -20,7 +20,10 @@ class DeeplExecutableTranslator(AbstractExecutableTranslator):
         target_lang: TranslatableLanguage,
         text: str,
         temperature: float,
+        context: list[tuple[str, str]] | None = None,
     ) -> str:
+        # DeepL is a dedicated translation API with no chat context; ``context``
+        # is accepted for interface parity and ignored.
         try:
             source_code = source_lang.deepl_code()
             target_code = target_lang.deepl_code()

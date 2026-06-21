@@ -20,10 +20,14 @@ class OpenrouterExecutableTranslator(AbstractExecutableTranslator):
         target_lang: TranslatableLanguage,
         text: str,
         temperature: float,
+        context: list[tuple[str, str]] | None = None,
     ) -> str:
-        prompt = self.also_add + generate_translation_prompt(
-            source_lang, target_lang, text
+        messages = generate_translation_prompt(
+            source_lang, target_lang, text, context
         )
+        if self.also_add:
+            # Prepend control tokens (e.g. qwen "/no_think") to the current segment.
+            messages[-1]["content"] = self.also_add + messages[-1]["content"]
 
         headers = {
             "Content-Type": "application/json",
@@ -33,16 +37,23 @@ class OpenrouterExecutableTranslator(AbstractExecutableTranslator):
             "model": self.model_slug,
             "temperature": temperature,
             "max_tokens": (len(text) * 6) + 4000,
-            "messages": [{"role": "user", "content": prompt}],
+            "messages": messages,
         }
 
-        response = requests.post(OPENROUTER_URL, headers=headers, json=payload)
+        # (connect, read) timeout so a hung/silent socket raises instead of
+        # blocking a worker (and its concurrency slot) forever.
+        response = requests.post(
+            OPENROUTER_URL, headers=headers, json=payload, timeout=(15, 150)
+        )
         if response.status_code != 200:
             raise Exception(f"OpenRouter error {response.status_code}: {response.text}")
 
         result = response.json()
         print(result)
-        return result["choices"][0]["message"]["content"]
+        # Providers occasionally return 200 with null content; treat as empty so
+        # the caller's length check handles it as a failure (not a None crash).
+        content = result["choices"][0]["message"]["content"]
+        return content if content is not None else ""
 
 
 class OpenrouterGenericInference(AbstractGenericInference):
@@ -73,7 +84,11 @@ class OpenrouterGenericInference(AbstractGenericInference):
             ],
         }
 
-        response = requests.post(OPENROUTER_URL, headers=headers, json=payload)
+        # (connect, read) timeout so a hung/silent socket raises instead of
+        # blocking a worker (and its concurrency slot) forever.
+        response = requests.post(
+            OPENROUTER_URL, headers=headers, json=payload, timeout=(15, 150)
+        )
         if response.status_code != 200:
             raise Exception(f"OpenRouter error {response.status_code}: {response.text}")
 

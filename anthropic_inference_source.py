@@ -1,6 +1,6 @@
 from typedefinitions import *
 import anthropic
-from utils import generate_translation_prompt
+from utils import generate_translation_prompt, split_system_messages
 
 
 class AnthropicExecutableTranslator(AbstractExecutableTranslator):
@@ -17,14 +17,19 @@ class AnthropicExecutableTranslator(AbstractExecutableTranslator):
         target_lang: TranslatableLanguage,
         text: str,
         temperature: float,
+        context: list[tuple[str, str]] | None = None,
     ) -> str:
-        prompt = generate_translation_prompt(source_lang, target_lang, text)
+        messages = generate_translation_prompt(
+            source_lang, target_lang, text, context
+        )
+        system_prompt, conversation = split_system_messages(messages)
 
         response = self.client.messages.create(
             model=self.model_slug,
             temperature=temperature,
             max_tokens=1024,
-            messages=[{"role": "user", "content": prompt}],
+            system=system_prompt,
+            messages=conversation,
         )
 
         return response.content[0].text

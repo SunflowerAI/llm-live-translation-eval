@@ -17,7 +17,10 @@ class LingvanexExecutableTranslator(AbstractExecutableTranslator):
         target_lang: TranslatableLanguage,
         text: str,
         temperature: float,
+        context: list[tuple[str, str]] | None = None,
     ) -> str:
+        # Lingvanex is a dedicated translation API with no chat context; ``context``
+        # is accepted for interface parity and ignored.
         headers = {
             "Authorization": f"Bearer {self.api_key}",
         }

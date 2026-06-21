@@ -1922,3 +1922,138 @@ evaluation_targets_testing = [
         thinking="N/A",
     ),
 ]
+
+# Top 10 OpenRouter models in the same price class as Gemini 2.5 Flash Lite
+# ($0.10/M input, $0.40/M output; ~$0.50/M blended) that are suitable for
+# translation. Selected on 2026-06-21 from the live OpenRouter catalogue:
+# reputable, multilingual, general-purpose instruct models whose blended price
+# clusters tightly around Flash Lite's. Gemini 2.5 Flash Lite itself is included
+# as the reference point. Per-1M (input/output) prices noted inline.
+evaluation_targets_flash_lite_price_class = [
+    TestedEntry(  # reference point — $0.10 / $0.40
+        model_name=ModelName.Gemini_25_Flash_Lite,
+        model_company=ModelCompany.Google,
+        inference_service_name=InferenceCompany.Openrouter,
+        inference_source=OpenrouterExecutableTranslator(
+            OPENROUTER_API_KEY,
+            "google/gemini-2.5-flash-lite",
+        ),
+        temp=0,
+        thinking="Disabled",
+    ),
+    TestedEntry(  # $0.10 / $0.40
+        model_name=ModelName.GPT_41_Nano,
+        model_company=ModelCompany.OpenAI,
+        inference_service_name=InferenceCompany.Openrouter,
+        inference_source=OpenrouterExecutableTranslator(
+            OPENROUTER_API_KEY,
+            "openai/gpt-4.1-nano",
+        ),
+        temp=0,
+        thinking="N/A",
+    ),
+    # Dropped from the live run (2026-06-21): reasoning models are unsuitable for
+    # live/simultaneous translation. gpt-5-nano reasons internally (~6s/segment);
+    # seed-2.0-mini emits a reasoning trace per segment. See also glm-4.7-flash below.
+    # TestedEntry(  # $0.05 / $0.40
+    #     model_name=ModelName.GPT_5_Nano,
+    #     model_company=ModelCompany.OpenAI,
+    #     inference_service_name=InferenceCompany.Openrouter,
+    #     inference_source=OpenrouterExecutableTranslator(
+    #         OPENROUTER_API_KEY,
+    #         "openai/gpt-5-nano",
+    #     ),
+    #     temp=0,
+    #     thinking="N/A",
+    # ),
+    # TestedEntry(  # $0.10 / $0.40
+    #     model_name=ModelName.Seed_20_Mini,
+    #     model_company=ModelCompany.ByteDance,
+    #     inference_service_name=InferenceCompany.Openrouter,
+    #     inference_source=OpenrouterExecutableTranslator(
+    #         OPENROUTER_API_KEY,
+    #         "bytedance-seed/seed-2.0-mini",
+    #     ),
+    #     temp=0,
+    #     thinking="N/A",
+    # ),
+    TestedEntry(  # $0.12 / $0.35
+        model_name=ModelName.Gemma4_31B,
+        model_company=ModelCompany.Google,
+        inference_service_name=InferenceCompany.Openrouter,
+        inference_source=OpenrouterExecutableTranslator(
+            OPENROUTER_API_KEY,
+            "google/gemma-4-31b-it",
+        ),
+        temp=0,
+        thinking="N/A",
+    ),
+    # Dropped from the live run (2026-06-21): z-ai/glm-4.7-flash over-reasons,
+    # generating a long thinking trace per segment (~30-60s each). Far too slow
+    # for simultaneous interpretation — disqualifying for the live use case.
+    # TestedEntry(  # $0.06 / $0.40
+    #     model_name=ModelName.GLM_47_Flash,
+    #     model_company=ModelCompany.ZhipuAI,
+    #     inference_service_name=InferenceCompany.Openrouter,
+    #     inference_source=OpenrouterExecutableTranslator(
+    #         OPENROUTER_API_KEY,
+    #         "z-ai/glm-4.7-flash",
+    #     ),
+    #     temp=0,
+    #     thinking="N/A",
+    # ),
+    TestedEntry(  # $0.13 / $0.40
+        model_name=ModelName.Hermes_4_70B,
+        model_company=ModelCompany.NousResearch,
+        inference_service_name=InferenceCompany.Openrouter,
+        inference_source=OpenrouterExecutableTranslator(
+            OPENROUTER_API_KEY,
+            "nousresearch/hermes-4-70b",
+        ),
+        temp=0,
+        thinking="N/A",
+    ),
+    TestedEntry(  # $0.10 / $0.32
+        model_name=ModelName.Llama33_70b,
+        model_company=ModelCompany.Meta,
+        inference_service_name=InferenceCompany.Openrouter,
+        inference_source=OpenrouterExecutableTranslator(
+            OPENROUTER_API_KEY,
+            "meta-llama/llama-3.3-70b-instruct",
+        ),
+        temp=0,
+        thinking="N/A",
+    ),
+    TestedEntry(  # $0.10 / $0.30
+        model_name=ModelName.Llama_4_Scout,
+        model_company=ModelCompany.Meta,
+        inference_service_name=InferenceCompany.Openrouter,
+        inference_source=OpenrouterExecutableTranslator(
+            OPENROUTER_API_KEY,
+            "meta-llama/llama-4-scout",
+        ),
+        temp=0,
+        thinking="N/A",
+    ),
+    TestedEntry(  # $0.08 / $0.28 (non-thinking)
+        model_name=ModelName.Qwen3_32b,
+        model_company=ModelCompany.Alibaba,
+        inference_service_name=InferenceCompany.Openrouter,
+        inference_source=OpenrouterExecutableTranslator(
+            OPENROUTER_API_KEY, "qwen/qwen3-32b", also_add="/no_think\n"
+        ),
+        temp=0,
+        thinking="Disabled",
+    ),
+    TestedEntry(  # $0.07 / $0.20
+        model_name=ModelName.Mistral_Small_32_24B,
+        model_company=ModelCompany.Mistral,
+        inference_service_name=InferenceCompany.Openrouter,
+        inference_source=OpenrouterExecutableTranslator(
+            OPENROUTER_API_KEY,
+            "mistralai/mistral-small-3.2-24b-instruct",
+        ),
+        temp=0,
+        thinking="N/A",
+    ),
+]
