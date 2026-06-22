@@ -12,6 +12,7 @@ from collections import defaultdict
 import numpy as np
 import random
 import re
+import json
 from scipy.stats import mannwhitneyu
 from utils import md5hash, get_translation_with_cache_check, inference_slot
 
@@ -323,6 +324,256 @@ This will be parsed, so keep your output exact, and remember the triple-backtick
         scores_by_text,
         key=lambda t: sum(scores_by_text[t]) / len(scores_by_text[t]),
     )
+
+
+def _extract_json_from_response(response):
+    """Return the JSON parsed from the last triple-backtick block (the judge
+    contract), falling back to the whole response. ``None`` if nothing parses."""
+    parts = response.split("```")
+    for part in reversed(parts):
+        try:
+            return json.loads(part.replace("json", "").strip())
+        except json.JSONDecodeError:
+            continue
+    try:
+        return json.loads(response)
+    except json.JSONDecodeError:
+        return None
+
+
+def judge_translations_windowed(
+    language,
+    category,
+    segments,
+    context_pairs,
+    cache,
+    compare_models,
+    output_queue,
+):
+    """Score a window of consecutive live segments — one judge call per judge.
+
+    ``segments`` is a list (oldest first) of per-segment payloads:
+    ``{"index": int, "segment": str, "translations": {text: [models]},
+    "refusals": [models]}``. Each judge scores every distinct translation of
+    every segment in the window in a single call, giving a one-clause
+    justification per score (a lightweight stand-in for chain-of-thought — no
+    thinking model). Translation IDs are deterministically shuffled per
+    (segment, judge) to avoid positional bias; the JSON the judge returns keys
+    each score by ``(segment, id)``.
+
+    Batching amortises the shared prompt prefix and cuts the judge-call count
+    (the live pipeline's bottleneck) by ~``len(segments)``. The tradeoff: within
+    one window, a segment does not see the *confirmed best* translation of the
+    segment immediately before it (only the source text and every candidate) —
+    ``context_pairs`` carries the confirmed bests of segments *before* the
+    window. Call with single-element windows for exact per-segment fidelity.
+
+    Emits ``RankItem``s (incl. ``-483`` refusals) to ``output_queue`` and returns
+    ``{segment_index: best_translation_text or None}`` for the live driver to
+    extend ``context_pairs``.
+    """
+    seg_text = {s["index"]: s["segment"] for s in segments}
+
+    context_block = ""
+    if context_pairs:
+        transcript = "\n".join(
+            f"Source: {src}\nTranslation: {best}" for src, best in context_pairs
+        )
+        context_block = (
+            "Preceding context (the immediately prior segments of the same live "
+            "talk, each with its best accepted translation — for reference only, "
+            "do NOT score these). The segments below continue directly from this, "
+            "so also judge whether each translation is coherent with it and with "
+            "the other segments in this batch: resolved references, and consistent "
+            "terminology and register.\n"
+            f"```\n{transcript}\n```\n\n"
+        )
+
+    # Only segments with at least one candidate are scored; refusals are emitted
+    # for every segment regardless.
+    scorable = [s for s in segments if s["translations"]]
+
+    # {segment_index: {text: [scores across the judge panel]}}
+    scores_by_segment = defaultdict(lambda: defaultdict(list))
+
+    def run_judge(comparison_model, comparison_inference):
+        # {segment_index: {text: score}} for this judge.
+        local_scores = defaultdict(dict)
+
+        # Refusals are independent of inference — emit them first.
+        for s in segments:
+            for refusal in s["refusals"]:
+                output_queue.put(
+                    RankItem(
+                        language=language,
+                        tested_entry=refusal,
+                        sentence=s["segment"],
+                        sentence_category=category,
+                        evaluating_model=comparison_model,
+                        translation="",
+                        score=-483,
+                    )
+                )
+
+        if not scorable:
+            return local_scores
+
+        # {segment_index: {local_id: (text, [models])}}
+        lookup = {}
+        segments_block = ""
+        for s in scorable:
+            seg_index = s["index"]
+            translations = s["translations"]
+            determ_key = (
+                "|".join(sorted(translations))
+                + "-"
+                + str(seg_index)
+                + "-"
+                + comparison_model
+            )
+            lookup[seg_index] = {}
+            segments_block += (
+                f"=== Segment {seg_index} ===\n"
+                f"Original:\n```{s['segment']}```\n"
+                f"Translations into `{language.value}`:\n"
+            )
+            for local_id, text in deterministic_sample(
+                sorted(translations), determ_key
+            ):
+                lookup[seg_index][local_id] = (text, translations[text])
+                segments_block += f"(segment {seg_index}, ID {local_id}):\n```{text}```\n"
+            segments_block += "\n"
+
+        json_example = """```
+[
+{ "segment": [SEGMENT], "id": [TRANSLATION_ID], "score": [SCORE_0_TO_100], "reason": "[ONE TERSE CLAUSE]" },
+{ "segment": [SEGMENT], "id": [ANOTHER_ID], "score": [SCORE_0_TO_100], "reason": "[ONE TERSE CLAUSE]" }
+]
+```"""
+
+        comparison_prompt = f"""You're an unforgiving professional translator. Your job is to critique, compare, and score multiple candidate translations across a batch of consecutive segments from the same live talk.
+IGNORE subjective or arguable style differences (e.g. loanwords; passive vs active). If a choice is defensible as style, don't criticise it. Favour natural, native-sounding translations over literal or clunky ones. The objective is to assess translation *quality* independent of *style*.
+
+Evaluation order, per candidate:
+- Accuracy (Same meaning?)
+- Vocab (Check for any mistakes, however subtle)
+- Grammar accuracy
+- Tone matching
+- *Consistency* in formality, both within the translation and compared to the original
+- Coherence with the preceding context and the other segments in this batch
+- Idiomaticity & style (native phrasing? Remember, no stylistic judgements)
+
+{context_block}The segments below are consecutive and in order. Score every candidate translation of every segment 0-100. Use the full range, including <40 for poor translations. Give each score a single terse justification clause — this enforces rigour; keep it short to save tokens.
+
+{segments_block}When you're ready, write out a single triple-backtick code block with a JSON array — one object per (segment, translation) — in the following form:
+{json_example}
+
+This will be parsed, so keep your output exact: emit exactly one JSON code block as the LAST thing in your response, with a "reason" for every entry. Remember the triple-backticks and correct format!
+"""
+
+        key = f"WINDOWCOMPARISON hash:{md5hash(comparison_prompt)} Model:{comparison_model}"
+        comparison_data = None
+        if cache.get(key):
+            comparison_data = cache.get(key)
+            log_sentence_data("Cache hit")
+        else:
+            log_sentence_data("Inference for windowed comparison")
+            wait_t = choice(range(0, 2))
+            time.sleep(wait_t)
+            for i in range(3):
+                try:
+                    with inference_slot():
+                        comparison_data = comparison_inference.infer(
+                            comparison_prompt, 0
+                        )
+                    if comparison_data:
+                        cache.set(key, comparison_data)
+                        break
+                except Exception as e:
+                    log_sentence_data(
+                        "Error during inference:",
+                        e,
+                        "with comp model",
+                        comparison_model,
+                    )
+                    time.sleep(i * choice(range(5, 10)))
+
+        if not comparison_data:
+            print(
+                "Failed to get data for",
+                comparison_model,
+                "window starting",
+                segments[0]["index"],
+            )
+            return local_scores
+
+        scores_list = _extract_json_from_response(comparison_data)
+        if not scores_list:
+            print(
+                "Error handling JSON - could not parse!!!",
+                f"full data: [{comparison_data}]",
+            )
+            return local_scores
+
+        expected = sum(len(v) for v in lookup.values())
+        if len(scores_list) != expected:
+            print(
+                "Incorrect response length on windowed judge",
+                len(scores_list),
+                "vs",
+                expected,
+            )
+
+        for entry in scores_list:
+            try:
+                seg_index = int(str(entry["segment"]).replace("ID", ""))
+                entry_id = int(str(entry["id"]).replace("ID", ""))
+                entry_score = float(entry["score"])
+            except (KeyError, ValueError, TypeError):
+                print("Bad entry in windowed judge", entry)
+                continue
+
+            if seg_index in lookup and entry_id in lookup[seg_index]:
+                text, models = lookup[seg_index][entry_id]
+                local_scores[seg_index][text] = entry_score
+                for testing_model in models:
+                    output_queue.put(
+                        RankItem(
+                            language=language,
+                            tested_entry=testing_model,
+                            sentence=seg_text[seg_index],
+                            sentence_category=category,
+                            evaluating_model=comparison_model,
+                            translation=text,
+                            score=entry_score,
+                        )
+                    )
+            else:
+                print("Incorrect (segment,id) in windowed judge", entry)
+
+        return local_scores
+
+    # Judges are independent; run the panel concurrently. Actual API concurrency
+    # is still bounded by the global inference_slot() semaphore.
+    with ThreadPoolExecutor(max_workers=max(1, len(compare_models))) as executor:
+        for local_scores in executor.map(
+            lambda cm: run_judge(cm[0], cm[1]), compare_models
+        ):
+            for seg_index, text_scores in local_scores.items():
+                for text, score in text_scores.items():
+                    scores_by_segment[seg_index][text].append(score)
+
+    best_by_segment = {}
+    for s in segments:
+        text_scores = scores_by_segment.get(s["index"])
+        if text_scores:
+            best_by_segment[s["index"]] = max(
+                text_scores.keys(),
+                key=lambda t, ts=text_scores: sum(ts[t]) / len(ts[t]),
+            )
+        else:
+            best_by_segment[s["index"]] = None
+    return best_by_segment
 
 
 def compare_set(language, target_models, cache, compare_models):

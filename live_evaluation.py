@@ -14,8 +14,9 @@ runs in two phases:
      as context. Pairs are parallelised across models and sermons; segments
      within a chain are not (they depend on each other).
   2. **Judge** — once every model has translated a sermon, score the models'
-     translations of each segment together, reusing ``judge_translations`` so the
-     judge contract is identical to the batch pipeline.
+     translations a window of segments at a time (``judge_translations_windowed``,
+     ``batch_size`` segments per judge call), each judge giving a brief
+     justification per score.
 
 The sermon id is used as the ``sentence_category`` on each ``RankItem``, so the
 existing aggregation and ``produce_summary`` work unchanged, with per-sermon
@@ -29,26 +30,62 @@ from concurrent.futures import ThreadPoolExecutor
 
 from typedefinitions import TranslatableLanguage
 from utils import get_translation_with_cache_check, set_inference_concurrency
-from run_evaluation import judge_translations
+from run_evaluation import judge_translations_windowed
 
 
 SEGMENTS_DIR = os.path.join(
     os.path.dirname(__file__), "live_test_data", "segments"
+)
+TRANSCRIPTIONS_DIR = os.path.join(
+    os.path.dirname(__file__), "live_test_data", "transcriptions"
 )
 MANIFEST_PATH = os.path.join(
     os.path.dirname(__file__), "live_test_data", "manifest.json"
 )
 
 
-def load_live_segments(sermon_ids=None, max_segments=None):
+def _smart_segments(sermon_id):
+    """Clause-level segments (the default): the re-segmented ``_segments.json``."""
+    path = os.path.join(SEGMENTS_DIR, f"{sermon_id}_segments.json")
+    with open(path) as f:
+        raw = json.load(f)
+    return [s["text"] for s in raw if s.get("text", "").strip()]
+
+
+def _naive_segments(sermon_id):
+    """Naive segments: the raw ASR streaming finals, translated as emitted.
+
+    Each Deepgram streaming "final" result (``final_results[].transcript`` in the
+    transcription JSON) is one segment, in order — the un-reprocessed chunks the
+    recogniser flushed live, with no clause-aware re-segmentation. The underlying
+    words are identical to the smart segments; only the boundaries differ, so a
+    smart-vs-naive quality comparison isolates segmentation.
+    """
+    path = os.path.join(TRANSCRIPTIONS_DIR, f"{sermon_id}_transcription.json")
+    with open(path) as f:
+        raw = json.load(f)
+    return [
+        r["transcript"]
+        for r in raw.get("final_results", [])
+        if r.get("transcript", "").strip()
+    ]
+
+
+def load_live_segments(sermon_ids=None, max_segments=None, segmentation="smart"):
     """Load ordered sermon segments from ``live_test_data``.
 
     ``sermon_ids`` selects which sermons (by id string); ``None`` loads all.
     ``max_segments`` caps the number of leading segments per sermon (the sermons
-    run to hundreds of segments, so a cap keeps a run tractable). Returns a list
-    of ``{"id", "title", "segments": [str, ...]}`` dicts, preserving the order of
+    run to hundreds of segments, so a cap keeps a run tractable). ``segmentation``
+    picks the boundary strategy: ``"smart"`` (clause-level ``_segments.json``, the
+    default) or ``"naive"`` (raw ASR streaming finals). Returns a list of
+    ``{"id", "title", "segments": [str, ...]}`` dicts, preserving the order of
     ``sermon_ids`` when given.
     """
+    if segmentation not in ("smart", "naive"):
+        raise ValueError(f"unknown segmentation {segmentation!r}")
+    load_segments = _naive_segments if segmentation == "naive" else _smart_segments
+
     titles = {}
     try:
         with open(MANIFEST_PATH) as f:
@@ -66,11 +103,7 @@ def load_live_segments(sermon_ids=None, max_segments=None):
 
     sermons = []
     for sermon_id in sermon_ids:
-        path = os.path.join(SEGMENTS_DIR, f"{sermon_id}_segments.json")
-        with open(path) as f:
-            raw = json.load(f)
-
-        segments = [s["text"] for s in raw if s.get("text", "").strip()]
+        segments = load_segments(sermon_id)
         if max_segments is not None:
             segments = segments[:max_segments]
 
@@ -115,7 +148,14 @@ def translate_chain(model, language, sermon_id, segments, cache, window=5):
 
 
 def compare_live_set(
-    language, target_models, cache, compare_models, sermons, window, max_workers
+    language,
+    target_models,
+    cache,
+    compare_models,
+    sermons,
+    window,
+    max_workers,
+    batch_size=1,
 ):
     """Run the translate-then-judge pipeline for one target language."""
     # Phase 1: build every (sermon, model) chain. Chains are sequential inside,
@@ -148,31 +188,46 @@ def compare_live_set(
     def judge_sermon(sermon):
         local_queue = Queue()
         best_context = []  # rolling [(source_segment, best_translation), ...]
+        seg_list = sermon["segments"]
 
-        for index, segment in enumerate(sermon["segments"]):
-            translations = {}  # text -> [models that produced it]
-            refusals = []
-            for model in target_models:
-                translation = chains[(sermon["id"], model.unique_id())][index]
-                if translation is None:
-                    refusals.append(model)
-                else:
-                    translations.setdefault(translation, []).append(model)
+        # Judge the segments in windows of ``batch_size``: each judge scores a
+        # whole window in one call (see judge_translations_windowed). Windows are
+        # sequential because each one's confirmed-best translations feed the next
+        # window's context; the segments within a window are judged together.
+        for start in range(0, len(seg_list), batch_size):
+            batch = []
+            for offset in range(start, min(start + batch_size, len(seg_list))):
+                translations = {}  # text -> [models that produced it]
+                refusals = []
+                for model in target_models:
+                    translation = chains[(sermon["id"], model.unique_id())][offset]
+                    if translation is None:
+                        refusals.append(model)
+                    else:
+                        translations.setdefault(translation, []).append(model)
+                batch.append(
+                    {
+                        "index": offset,
+                        "segment": seg_list[offset],
+                        "translations": translations,
+                        "refusals": refusals,
+                    }
+                )
 
             window_context = best_context[-window:]
-            best = judge_translations(
+            best_by_segment = judge_translations_windowed(
                 language,
                 sermon["id"],
-                segment,
-                translations,
-                refusals,
+                batch,
+                window_context if window_context else None,
                 cache,
                 compare_models,
                 local_queue,
-                window_context if window_context else None,
             )
-            if best is not None:
-                best_context.append((segment, best))
+            for item in batch:
+                best = best_by_segment.get(item["index"])
+                if best is not None:
+                    best_context.append((item["segment"], best))
 
         items = []
         while not local_queue.empty():
@@ -195,6 +250,8 @@ def evaluate_live_datasets(
     sermon_ids=None,
     max_segments=50,
     window=5,
+    batch_size=1,
+    segmentation="smart",
     max_workers=8,
     max_concurrency=16,
     language_workers=4,
@@ -215,7 +272,7 @@ def evaluate_live_datasets(
     """
     set_inference_concurrency(max_concurrency)
 
-    sermons = load_live_segments(sermon_ids, max_segments)
+    sermons = load_live_segments(sermon_ids, max_segments, segmentation)
     sermon_labels = [sermon["id"] for sermon in sermons]
 
     # Languages are independent; evaluate them concurrently. Every API call still
@@ -224,7 +281,14 @@ def evaluate_live_datasets(
     def run_language(lang):
         print("Live lang", lang)
         return compare_live_set(
-            lang, target_models, cache, compare_models, sermons, window, max_workers
+            lang,
+            target_models,
+            cache,
+            compare_models,
+            sermons,
+            window,
+            max_workers,
+            batch_size,
         )
 
     data_by_language = {}

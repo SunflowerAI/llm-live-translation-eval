@@ -30,60 +30,46 @@ from coherence import (
 cache = SQLiteKVCache("./cache.db")
 
 # define comparing methods
+#
+# Judge panel — upgraded (2026-06-22) from the flash-class trio (DeepSeek V3,
+# Gemini 2.5 Flash, Llama 4 Maverick) to stronger, non-reasoning frontier
+# judges. Paired with *windowed* judging (see batch_size on the
+# evaluate_live_datasets call below), which amortises the shared prompt prefix
+# and cuts the judge-call count, so the higher per-token cost of these models
+# doesn't fully undo the savings. NOT reasoning/thinking judges — those dominate
+# the judging wall-clock (see the qwen3 note); instead each judge now justifies
+# every score inline (a lightweight stand-in for chain-of-thought).
+#
+# DeepSeek V3 is kept in the mix for cost balance and provider diversity; swap
+# in other frontier slugs your OpenRouter access supports for different/stronger
+# judges (e.g. an Opus- or GPT-5-class model), or drop deepseek for max strength.
 compare_models = [
-    # (
-    #    "openai/gpt-4.1-comparison-system",
-    #    OpenrouterGenericInference(OPENROUTER_API_KEY, "openai/gpt-4.1"),
-    # ),
-    # (
-    #    "anthropic/claude-3.7-sonnet-comparison-system",
-    #    OpenrouterGenericInference(OPENROUTER_API_KEY, "anthropic/claude-3.7-sonnet"),
-    # ),
-    # (
-    #    "x-ai/grok-3-beta-comparison-system",
-    #    OpenrouterGenericInference(OPENROUTER_API_KEY, "x-ai/grok-3-beta"),
-    # ),
-    # (
-    #    "anthropic/haiku-3.5-comparison-system",
-    #    OpenrouterGenericInference(OPENROUTER_API_KEY, "anthropic/claude-3.5-haiku"),
-    # ),
-    # Dropped (2026-06-21): qwen3-235b-a22b is a reasoning model — slow as a judge
-    # (it dominated the judging wall-clock) and errored on probe. Removed for the
-    # live run, leaving four fast, non-reasoning judges.
-    # (
-    #     "qwen/qwen3-235b-a22b-comparison-system",
-    #     OpenrouterGenericInference(OPENROUTER_API_KEY, "qwen/qwen3-235b-a22b"),
-    # ),
+    (
+        "openai/gpt-4.1-comparison-system",
+        OpenrouterGenericInference(OPENROUTER_API_KEY, "openai/gpt-4.1"),
+    ),
+    (
+        "anthropic/claude-sonnet-4.6-comparison-system",
+        OpenrouterGenericInference(OPENROUTER_API_KEY, "anthropic/claude-sonnet-4.6"),
+    ),
     (
         "deepseek/deepseek-v3-comparison-system",
         OpenrouterGenericInference(
             OPENROUTER_API_KEY, "deepseek/deepseek-chat-v3-0324"
         ),
     ),
-    # (
-    #    "google/gemini-2.5-pro-exp-comparison-system-thinking",
-    #    GoogleGenericInference(GEMINI_API_KEY, "gemini-2.5-pro-exp-03-25", True),
-    # ),
-    (
-        "google/gemini-2.5-flash-comparison-system",
-        OpenrouterGenericInference(
-            OPENROUTER_API_KEY, "google/gemini-2.5-flash"
-        ),
-    ),
-    (
-        "meta/llama-4-maverick-comparison-system",
-        OpenrouterGenericInference(OPENROUTER_API_KEY, "meta-llama/llama-4-maverick"),
-    ),
-    # Dropped (2026-06-21): mistralai/mistral-medium-3 returns 404 "No endpoints
-    # matching your data policy" — its providers are excluded by this account's
-    # OpenRouter privacy settings (openrouter.ai/settings/privacy). It contributed
-    # no scores, so judging was effectively a 3-judge panel anyway. Re-enable by
-    # adjusting the data policy if you want it back.
-    # (
-    #     "mistralai/mistral-medium-3",
-    #     OpenrouterGenericInference(OPENROUTER_API_KEY, "mistralai/mistral-medium-3"),
-    # ),
 ]
+# Previous flash-class panel — revert to this block for cheaper, faster judging:
+#   ("google/gemini-2.5-flash-comparison-system",
+#       OpenrouterGenericInference(OPENROUTER_API_KEY, "google/gemini-2.5-flash")),
+#   ("meta/llama-4-maverick-comparison-system",
+#       OpenrouterGenericInference(OPENROUTER_API_KEY, "meta-llama/llama-4-maverick")),
+#
+# Dropped (2026-06-21): qwen3-235b-a22b is a reasoning model — slow as a judge
+# (it dominated the judging wall-clock) and errored on probe.
+# Dropped (2026-06-21): mistralai/mistral-medium-3 returns 404 "No endpoints
+# matching your data policy" — providers excluded by this account's OpenRouter
+# privacy settings (openrouter.ai/settings/privacy).
 
 compare_models_coherence = [
     (
@@ -127,12 +113,12 @@ with open("out_testing.json", "w") as f:
 # context (see live_evaluation.py). Kept small (a couple of sermons, capped
 # segments) so a run is tractable; widen sermon_ids / max_segments to scale up.
 data_live = evaluate_live_datasets(
-    # Run one language at a time, starting with Simplified Chinese. Swap in the
-    # next language (or add several) when ready:
-    #   Cantonese, Japanese, Korean, Indonesian, Farsi, Spanish,
+    # Run one language at a time. Done: Simplified Chinese. Now running Korean.
+    # Swap in the next language (or add several) when ready:
+    #   Cantonese, Japanese, Indonesian, Farsi, Spanish,
     #   BrazilianPortuguese, Burmese, Khmer, Bislama, Maori, Samoan, Tongan, Fijian
     [
-        TranslatableLanguage.SimplifiedChinese,
+        TranslatableLanguage.Korean,
     ],
     evaluation_targets_flash_lite_price_class,
     cache,
@@ -143,6 +129,13 @@ data_live = evaluate_live_datasets(
     ],
     max_segments=None,
     window=5,
+    # Windowed judging: how many consecutive segments each judge scores per
+    # call. >1 amortises the shared prompt prefix and cuts the judge-call count /
+    # wall-clock, offsetting the stronger (frontier) judge panel. The tradeoff:
+    # segments inside one batch don't see each other's *confirmed best* as locked
+    # context (only the source text + every candidate). 1 = exact original
+    # fidelity, one call per segment.
+    batch_size=5,
     # max_concurrency is the single rate-limit knob (total simultaneous API
     # calls); raise it if your OpenRouter limits allow, to finish proportionally
     # faster. language_workers/max_workers just need to keep it saturated.

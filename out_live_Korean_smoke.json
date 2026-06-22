@@ -1,0 +1,450 @@
+[
+    {
+        "language": "Korean",
+        "models": [
+            {
+                "id": 0,
+                "model": {
+                    "name": "Gemini 2.5 Flash Lite",
+                    "company": "Google",
+                    "temp": 0,
+                    "thinking": "Disabled"
+                },
+                "comparison_items": [
+                    {
+                        "sentence_category": "1054361551",
+                        "evaluating_model": "openai/gpt-4.1-comparison-system",
+                        "scores": [
+                            96.0,
+                            98.0,
+                            65.0,
+                            85.0,
+                            100.0,
+                            100.0
+                        ]
+                    },
+                    {
+                        "sentence_category": "1054361551",
+                        "evaluating_model": "deepseek/deepseek-v3-comparison-system",
+                        "scores": [
+                            95.0,
+                            90.0,
+                            30.0,
+                            80.0,
+                            95.0,
+                            80.0
+                        ]
+                    },
+                    {
+                        "sentence_category": "1054361551",
+                        "evaluating_model": "anthropic/claude-sonnet-4.6-comparison-system",
+                        "scores": [
+                            85.0,
+                            88.0,
+                            68.0,
+                            75.0,
+                            88.0,
+                            68.0
+                        ]
+                    }
+                ],
+                "compare_models": [
+                    "openai/gpt-4.1-comparison-system",
+                    "anthropic/claude-sonnet-4.6-comparison-system",
+                    "deepseek/deepseek-v3-comparison-system"
+                ],
+                "sentence_types": [
+                    "1054361551"
+                ]
+            },
+            {
+                "id": 1,
+                "model": {
+                    "name": "GPT 4.1 Nano",
+                    "company": "OpenAI",
+                    "temp": 0,
+                    "thinking": "N/A"
+                },
+                "comparison_items": [
+                    {
+                        "sentence_category": "1054361551",
+                        "evaluating_model": "openai/gpt-4.1-comparison-system",
+                        "scores": [
+                            45.0,
+                            97.0,
+                            90.0,
+                            60.0,
+                            60.0,
+                            95.0
+                        ]
+                    },
+                    {
+                        "sentence_category": "1054361551",
+                        "evaluating_model": "deepseek/deepseek-v3-comparison-system",
+                        "scores": [
+                            40.0,
+                            80.0,
+                            90.0,
+                            30.0,
+                            20.0,
+                            95.0
+                        ]
+                    },
+                    {
+                        "sentence_category": "1054361551",
+                        "evaluating_model": "anthropic/claude-sonnet-4.6-comparison-system",
+                        "scores": [
+                            20.0,
+                            80.0,
+                            55.0,
+                            50.0,
+                            10.0,
+                            85.0
+                        ]
+                    }
+                ],
+                "compare_models": [
+                    "openai/gpt-4.1-comparison-system",
+                    "anthropic/claude-sonnet-4.6-comparison-system",
+                    "deepseek/deepseek-v3-comparison-system"
+                ],
+                "sentence_types": [
+                    "1054361551"
+                ]
+            },
+            {
+                "id": 2,
+                "model": {
+                    "name": "Gemma 4 31B",
+                    "company": "Google",
+                    "temp": 0,
+                    "thinking": "N/A"
+                },
+                "comparison_items": [
+                    {
+                        "sentence_category": "1054361551",
+                        "evaluating_model": "openai/gpt-4.1-comparison-system",
+                        "scores": [
+                            98.0,
+                            97.0,
+                            75.0,
+                            95.0,
+                            95.0,
+                            95.0
+                        ]
+                    },
+                    {
+                        "sentence_category": "1054361551",
+                        "evaluating_model": "deepseek/deepseek-v3-comparison-system",
+                        "scores": [
+                            90.0,
+                            90.0,
+                            50.0,
+                            70.0,
+                            100.0,
+                            90.0
+                        ]
+                    },
+                    {
+                        "sentence_category": "1054361551",
+                        "evaluating_model": "anthropic/claude-sonnet-4.6-comparison-system",
+                        "scores": [
+                            88.0,
+                            88.0,
+                            70.0,
+                            60.0,
+                            85.0,
+                            88.0
+                        ]
+                    }
+                ],
+                "compare_models": [
+                    "openai/gpt-4.1-comparison-system",
+                    "anthropic/claude-sonnet-4.6-comparison-system",
+                    "deepseek/deepseek-v3-comparison-system"
+                ],
+                "sentence_types": [
+                    "1054361551"
+                ]
+            },
+            {
+                "id": 3,
+                "model": {
+                    "name": "Hermes 4 70B",
+                    "company": "Nous Research",
+                    "temp": 0,
+                    "thinking": "N/A"
+                },
+                "comparison_items": [
+                    {
+                        "sentence_category": "1054361551",
+                        "evaluating_model": "openai/gpt-4.1-comparison-system",
+                        "scores": [
+                            95.0,
+                            98.0,
+                            60.0,
+                            90.0,
+                            100.0,
+                            95.0
+                        ]
+                    },
+                    {
+                        "sentence_category": "1054361551",
+                        "evaluating_model": "deepseek/deepseek-v3-comparison-system",
+                        "scores": [
+                            95.0,
+                            85.0,
+                            40.0,
+                            95.0,
+                            95.0,
+                            85.0
+                        ]
+                    },
+                    {
+                        "sentence_category": "1054361551",
+                        "evaluating_model": "anthropic/claude-sonnet-4.6-comparison-system",
+                        "scores": [
+                            88.0,
+                            90.0,
+                            65.0,
+                            82.0,
+                            88.0,
+                            87.0
+                        ]
+                    }
+                ],
+                "compare_models": [
+                    "openai/gpt-4.1-comparison-system",
+                    "anthropic/claude-sonnet-4.6-comparison-system",
+                    "deepseek/deepseek-v3-comparison-system"
+                ],
+                "sentence_types": [
+                    "1054361551"
+                ]
+            },
+            {
+                "id": 4,
+                "model": {
+                    "name": "Llama 3.3 70b",
+                    "company": "Meta",
+                    "temp": 0,
+                    "thinking": "N/A"
+                },
+                "comparison_items": [
+                    {
+                        "sentence_category": "1054361551",
+                        "evaluating_model": "openai/gpt-4.1-comparison-system",
+                        "scores": [
+                            97.0,
+                            30.0,
+                            70.0,
+                            80.0,
+                            85.0,
+                            95.0
+                        ]
+                    },
+                    {
+                        "sentence_category": "1054361551",
+                        "evaluating_model": "deepseek/deepseek-v3-comparison-system",
+                        "scores": [
+                            85.0,
+                            70.0,
+                            70.0,
+                            20.0,
+                            80.0,
+                            90.0
+                        ]
+                    },
+                    {
+                        "sentence_category": "1054361551",
+                        "evaluating_model": "anthropic/claude-sonnet-4.6-comparison-system",
+                        "scores": [
+                            75.0,
+                            5.0,
+                            76.0,
+                            20.0,
+                            78.0,
+                            86.0
+                        ]
+                    }
+                ],
+                "compare_models": [
+                    "openai/gpt-4.1-comparison-system",
+                    "anthropic/claude-sonnet-4.6-comparison-system",
+                    "deepseek/deepseek-v3-comparison-system"
+                ],
+                "sentence_types": [
+                    "1054361551"
+                ]
+            },
+            {
+                "id": 5,
+                "model": {
+                    "name": "LLama 4 Scout",
+                    "company": "Meta",
+                    "temp": 0,
+                    "thinking": "N/A"
+                },
+                "comparison_items": [
+                    {
+                        "sentence_category": "1054361551",
+                        "evaluating_model": "openai/gpt-4.1-comparison-system",
+                        "scores": [
+                            40.0,
+                            98.0,
+                            70.0,
+                            85.0,
+                            30.0,
+                            95.0
+                        ]
+                    },
+                    {
+                        "sentence_category": "1054361551",
+                        "evaluating_model": "deepseek/deepseek-v3-comparison-system",
+                        "scores": [
+                            30.0,
+                            90.0,
+                            60.0,
+                            85.0,
+                            10.0,
+                            100.0
+                        ]
+                    },
+                    {
+                        "sentence_category": "1054361551",
+                        "evaluating_model": "anthropic/claude-sonnet-4.6-comparison-system",
+                        "scores": [
+                            15.0,
+                            88.0,
+                            72.0,
+                            78.0,
+                            0.0,
+                            86.0
+                        ]
+                    }
+                ],
+                "compare_models": [
+                    "openai/gpt-4.1-comparison-system",
+                    "anthropic/claude-sonnet-4.6-comparison-system",
+                    "deepseek/deepseek-v3-comparison-system"
+                ],
+                "sentence_types": [
+                    "1054361551"
+                ]
+            },
+            {
+                "id": 6,
+                "model": {
+                    "name": "Qwen 3 32B",
+                    "company": "Alibaba",
+                    "temp": 0,
+                    "thinking": "Disabled"
+                },
+                "comparison_items": [
+                    {
+                        "sentence_category": "1054361551",
+                        "evaluating_model": "openai/gpt-4.1-comparison-system",
+                        "scores": [
+                            42.0,
+                            97.0,
+                            80.0,
+                            75.0,
+                            70.0,
+                            90.0
+                        ]
+                    },
+                    {
+                        "sentence_category": "1054361551",
+                        "evaluating_model": "deepseek/deepseek-v3-comparison-system",
+                        "scores": [
+                            50.0,
+                            95.0,
+                            80.0,
+                            100.0,
+                            30.0,
+                            70.0
+                        ]
+                    },
+                    {
+                        "sentence_category": "1054361551",
+                        "evaluating_model": "anthropic/claude-sonnet-4.6-comparison-system",
+                        "scores": [
+                            18.0,
+                            85.0,
+                            75.0,
+                            45.0,
+                            10.0,
+                            78.0
+                        ]
+                    }
+                ],
+                "compare_models": [
+                    "openai/gpt-4.1-comparison-system",
+                    "anthropic/claude-sonnet-4.6-comparison-system",
+                    "deepseek/deepseek-v3-comparison-system"
+                ],
+                "sentence_types": [
+                    "1054361551"
+                ]
+            },
+            {
+                "id": 7,
+                "model": {
+                    "name": "Mistral Small 3.2 24B",
+                    "company": "Mistral",
+                    "temp": 0,
+                    "thinking": "N/A"
+                },
+                "comparison_items": [
+                    {
+                        "sentence_category": "1054361551",
+                        "evaluating_model": "openai/gpt-4.1-comparison-system",
+                        "scores": [
+                            97.0,
+                            97.0,
+                            85.0,
+                            90.0,
+                            95.0,
+                            90.0
+                        ]
+                    },
+                    {
+                        "sentence_category": "1054361551",
+                        "evaluating_model": "deepseek/deepseek-v3-comparison-system",
+                        "scores": [
+                            90.0,
+                            95.0,
+                            100.0,
+                            90.0,
+                            90.0,
+                            95.0
+                        ]
+                    },
+                    {
+                        "sentence_category": "1054361551",
+                        "evaluating_model": "anthropic/claude-sonnet-4.6-comparison-system",
+                        "scores": [
+                            75.0,
+                            87.0,
+                            78.0,
+                            72.0,
+                            80.0,
+                            84.0
+                        ]
+                    }
+                ],
+                "compare_models": [
+                    "openai/gpt-4.1-comparison-system",
+                    "anthropic/claude-sonnet-4.6-comparison-system",
+                    "deepseek/deepseek-v3-comparison-system"
+                ],
+                "sentence_types": [
+                    "1054361551"
+                ]
+            }
+        ],
+        "sermons": {
+            "1054361551": "The City | 2 Timothy 2:1-13 | A Home for Everyone"
+        }
+    }
+]
