@@ -30,7 +30,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from typedefinitions import TranslatableLanguage
 from utils import get_translation_with_cache_check, set_inference_concurrency
-from run_evaluation import judge_translations_windowed
+from run_evaluation import judge_translations, judge_translations_windowed
 
 
 SEGMENTS_DIR = os.path.join(
@@ -118,6 +118,195 @@ def load_live_segments(sermon_ids=None, max_segments=None, segmentation="smart")
     return sermons
 
 
+# --------------------------------------------------------------------------- #
+# Sentence-level reconstruction
+#
+# Live translation happens segment by segment (clause-level), but the segments
+# are not natural units to *judge*: a fragment like "And then Emma's" is barely
+# scoreable on its own. So an alternative judging mode regroups the segments back
+# into sentences aligned with the source, concatenates each model's segment
+# translations into a sentence translation, and judges those sentences with the
+# original ``judge_translations`` procedure (independent per sentence, fully
+# parallel) — the same one the batch benchmark uses.
+#
+# For the clause-level ("smart") segmentation this is exact: no segment contains
+# an interior sentence boundary (verified across the corpus), so every source
+# sentence is a contiguous run of whole segments and reconstruction is just
+# concatenation. The raw-ASR ("naive") segmentation does cut mid-sentence (~10%
+# of segments); there, the straddling segment's translation is split at its first
+# interior sentence-final mark to line up with the source boundary.
+# --------------------------------------------------------------------------- #
+
+# Sentence-final marks by script. Latin/Cyrillic/Hangul use the ASCII marks; CJK
+# scripts use the full-width forms (and sometimes the ASCII ones too); Burmese and
+# Khmer have their own end marks. Used to find sentence boundaries inside a target
+# translation when re-splitting a straddling segment.
+_SENTENCE_FINAL = {
+    TranslatableLanguage.SimplifiedChinese: "。！？.!?…",
+    TranslatableLanguage.Chinese: "。！？.!?…",
+    TranslatableLanguage.Cantonese: "。！？.!?…",
+    TranslatableLanguage.Japanese: "。！？.!?…",
+    TranslatableLanguage.Burmese: "။?!.",
+    TranslatableLanguage.Khmer: "។?!.",
+}
+_DEFAULT_SENTENCE_FINAL = ".!?…"
+
+# Scripts that don't separate words with spaces: concatenate segment translations
+# with no separator. Everything else (incl. Korean, which does space words) joins
+# with a single space.
+_NO_SPACE = {
+    TranslatableLanguage.SimplifiedChinese,
+    TranslatableLanguage.Chinese,
+    TranslatableLanguage.Cantonese,
+    TranslatableLanguage.Japanese,
+    TranslatableLanguage.Burmese,
+    TranslatableLanguage.Khmer,
+}
+
+
+def _joiner(language):
+    return "" if language in _NO_SPACE else " "
+
+
+def _interior_cut_positions(text, marks):
+    """Char offsets just after each *interior* sentence-final mark in ``text``.
+
+    A mark is interior if some word character follows it (after optional closing
+    quotes/brackets and whitespace) — i.e. it ends a sentence that is not the last
+    one in ``text``. Trailing terminal marks are ignored. Returns offsets suitable
+    for ``_split_at`` so the text splits into one piece per contained sentence.
+    """
+    cuts = []
+    i = 0
+    n = len(text)
+    while i < n:
+        if text[i] in marks:
+            # absorb a run of marks/closing quotes (e.g. `?"` or `."`)
+            j = i + 1
+            while j < n and (text[j] in marks or text[j] in "\"'”’)】»"):
+                j += 1
+            k = j
+            while k < n and text[k].isspace():
+                k += 1
+            if k < n and text[k].isalnum():  # real content follows → interior
+                cuts.append(j)
+            i = j
+        else:
+            i += 1
+    return cuts
+
+
+def _split_at(text, cuts):
+    """Split ``text`` at the given (sorted) char offsets into ``len(cuts)+1`` parts."""
+    parts = []
+    prev = 0
+    for c in cuts:
+        parts.append(text[prev:c])
+        prev = c
+    parts.append(text[prev:])
+    return parts
+
+
+def _ends_sentence(text):
+    stripped = text.rstrip("\"'”’)】»  ").rstrip()
+    return bool(stripped) and stripped[-1] in _DEFAULT_SENTENCE_FINAL
+
+
+def group_sentences(segments):
+    """Regroup ordered source segments into sentences.
+
+    Returns a list of ``{"text": source_sentence, "parts": [(seg_index,
+    piece_index, n_pieces), ...]}``. ``piece_index`` is ``None`` for a whole
+    segment; for a segment that straddles one or more sentence boundaries it is the
+    0-based piece of that segment's translation (split into ``n_pieces``) belonging
+    to this sentence. Source text here is English, so boundaries are ASCII ``.!?``.
+    """
+    sentences = []
+    current_parts = []
+    current_text = []
+
+    def flush():
+        if current_parts:
+            sentences.append(
+                {"text": " ".join(current_text).strip(), "parts": list(current_parts)}
+            )
+        current_parts.clear()
+        current_text.clear()
+
+    for idx, seg in enumerate(segments):
+        cuts = _interior_cut_positions(seg, _DEFAULT_SENTENCE_FINAL)
+        if not cuts:
+            current_parts.append((idx, None, 1))
+            current_text.append(seg)
+            if _ends_sentence(seg):
+                flush()
+            continue
+
+        n_pieces = len(cuts) + 1
+        src_pieces = _split_at(seg, cuts)
+        # Piece 0 closes whatever sentence was in progress.
+        current_parts.append((idx, 0, n_pieces))
+        current_text.append(src_pieces[0])
+        flush()
+        # Interior pieces are complete sentences on their own.
+        for p in range(1, n_pieces - 1):
+            sentences.append(
+                {"text": src_pieces[p].strip(), "parts": [(idx, p, n_pieces)]}
+            )
+        # The trailing piece either completes a sentence (segment ends terminal) or
+        # opens the next one (continues into following segments).
+        last = n_pieces - 1
+        current_parts.append((idx, last, n_pieces))
+        current_text.append(src_pieces[last])
+        if _ends_sentence(seg):
+            flush()
+
+    flush()
+    return sentences
+
+
+def _split_target(text, n_pieces, language):
+    """Split a target translation into ``n_pieces`` at its interior sentence marks.
+
+    Aligns the k-th target sentence boundary with the k-th source boundary. If the
+    target has fewer usable boundaries than needed (e.g. the model dropped the
+    punctuation, or the script lacks it), falls back to assigning the whole text to
+    the first piece. Returns ``(pieces, fell_back)``.
+    """
+    if n_pieces == 1:
+        return [text], False
+    marks = _SENTENCE_FINAL.get(language, _DEFAULT_SENTENCE_FINAL)
+    cuts = _interior_cut_positions(text, marks)
+    if len(cuts) >= n_pieces - 1:
+        return _split_at(text, cuts[: n_pieces - 1]), False
+    return [text] + [""] * (n_pieces - 1), True
+
+
+def reconstruct_sentence(chain, parts, language):
+    """Concatenate one model's segment translations into a sentence translation.
+
+    ``chain`` is the model's per-segment output (text or ``None`` for a refusal).
+    ``parts`` come from ``group_sentences``. Returns ``(sentence_text, fell_back)``;
+    ``sentence_text`` is empty when the model produced nothing for this sentence (a
+    sentence-level refusal). ``fell_back`` flags a straddle split that couldn't find
+    a target boundary.
+    """
+    pieces = []
+    fell_back = False
+    for seg_index, piece_index, n_pieces in parts:
+        translation = chain[seg_index]
+        if translation is None:
+            continue
+        if piece_index is None:
+            pieces.append(translation.strip())
+        else:
+            split, fb = _split_target(translation, n_pieces, language)
+            fell_back = fell_back or fb
+            pieces.append(split[piece_index].strip())
+    text = _joiner(language).join(p for p in pieces if p).strip()
+    return text, fell_back
+
+
 def translate_chain(model, language, sermon_id, segments, cache, window=5):
     """Translate one sermon's segments in order for a single model.
 
@@ -156,8 +345,20 @@ def compare_live_set(
     window,
     max_workers,
     batch_size=1,
+    judging_unit="segment",
 ):
-    """Run the translate-then-judge pipeline for one target language."""
+    """Run the translate-then-judge pipeline for one target language.
+
+    ``judging_unit`` picks how the translated stream is scored:
+
+      * ``"segment"`` — judge each clause-level segment in context, threading the
+        rolling best translation forward (``judge_translations_windowed``). The
+        live default; judging is sequential per sermon.
+      * ``"sentence"`` — regroup the segments back into sentences aligned with the
+        source, concatenate each model's segment translations into a sentence, and
+        judge those sentences independently (``judge_translations``, no context).
+        Fully parallel, and identical to the batch benchmark's procedure.
+    """
     # Phase 1: build every (sermon, model) chain. Chains are sequential inside,
     # but independent across models and sermons, so fan them out.
     chains = {}  # (sermon_id, model.unique_id()) -> [translation | None, ...]
@@ -179,6 +380,60 @@ def compare_live_set(
         for future in futures:
             sermon_id, model_uid = futures[future]
             chains[(sermon_id, model_uid)] = future.result()
+
+    # Phase 2 (sentence mode): regroup each sermon's segments into sentences,
+    # reconstruct every model's sentence translation from its segment outputs, and
+    # judge the sentences independently. No rolling context and no cross-sentence
+    # dependency, so all (sermon, sentence) judgements fan out in parallel.
+    if judging_unit == "sentence":
+        queue = Queue()
+        fell_back = 0
+        tasks = []  # (sermon_id, source_sentence, translations, refusals)
+        for sermon in sermons:
+            for sentence in group_sentences(sermon["segments"]):
+                translations = {}  # text -> [models]
+                refusals = []
+                for model in target_models:
+                    chain = chains[(sermon["id"], model.unique_id())]
+                    text, fb = reconstruct_sentence(chain, sentence["parts"], language)
+                    if fb:
+                        fell_back += 1
+                    if text:
+                        translations.setdefault(text, []).append(model)
+                    else:
+                        refusals.append(model)
+                if translations:
+                    tasks.append(
+                        (sermon["id"], sentence["text"], translations, refusals)
+                    )
+
+        if fell_back:
+            print(
+                f"[{language.value}] {fell_back} straddle split(s) had no target "
+                "sentence mark; assigned whole segment to the first sentence."
+            )
+
+        def judge_one(task):
+            sermon_id, source_sentence, translations, refusals = task
+            judge_translations(
+                language,
+                sermon_id,
+                source_sentence,
+                translations,
+                refusals,
+                cache,
+                compare_models,
+                queue,
+                context_pairs=None,
+            )
+
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            list(executor.map(judge_one, tasks))
+
+        items = []
+        while not queue.empty():
+            items.append(queue.get())
+        return items
 
     # Phase 2: judge each sermon's segments. The judge scores a segment in
     # context — the preceding source segments AND the single best translation of
@@ -252,6 +507,7 @@ def evaluate_live_datasets(
     window=5,
     batch_size=1,
     segmentation="smart",
+    judging_unit="segment",
     max_workers=8,
     max_concurrency=16,
     language_workers=4,
@@ -289,6 +545,7 @@ def evaluate_live_datasets(
             window,
             max_workers,
             batch_size,
+            judging_unit,
         )
 
     data_by_language = {}

@@ -38,6 +38,13 @@ class OpenrouterExecutableTranslator(AbstractExecutableTranslator):
             "temperature": temperature,
             "max_tokens": (len(text) * 6) + 4000,
             "messages": messages,
+            # Relax the per-request data policy so providers tagged "Data Policy"
+            # can route. NOTE: this field alone did NOT unblock mistral-medium-3 —
+            # OpenRouter enforces the stricter of account-vs-request policy plus a
+            # separate account guardrail (ZDR) this field can't touch, so the
+            # account privacy/guardrail setting had to be changed too. Kept because
+            # it's harmless and not in the cache key, so no re-spend.
+            "provider": {"data_collection": "allow"},
         }
 
         # (connect, read) timeout so a hung/silent socket raises instead of
@@ -82,6 +89,12 @@ class OpenrouterGenericInference(AbstractGenericInference):
             "messages": [
                 {"role": "user", "content": append_text + user_prompt},
             ],
+            # Relax the per-request data policy so a judge on a "Data Policy"-tagged
+            # provider can route. NOTE: insufficient on its own for mistral-medium-3
+            # — the account guardrail (ZDR) setting had to be changed too (see the
+            # translator payload above). Not in the cache key, so existing cached
+            # judge outputs stay valid.
+            "provider": {"data_collection": "allow"},
         }
 
         # (connect, read) timeout so a hung/silent socket raises instead of

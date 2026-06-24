@@ -181,7 +181,7 @@ if __name__ == "__main__":
     # Optional first arg selects the panel (flash|frontier); rest are languages.
     args = sys.argv[1:]
     panel = "flash"
-    if args and args[0] in ("flash", "frontier"):
+    if args and args[0] in ("flash", "frontier", "sentence"):
         panel = args.pop(0)
     for slug in (args or ["Korean", "SimplifiedChinese"]):
         compare(slug, panel)

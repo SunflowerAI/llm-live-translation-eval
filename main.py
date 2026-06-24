@@ -31,26 +31,27 @@ cache = SQLiteKVCache("./cache.db")
 
 # define comparing methods
 #
-# Judge panel — upgraded (2026-06-22) from the flash-class trio (DeepSeek V3,
-# Gemini 2.5 Flash, Llama 4 Maverick) to stronger, non-reasoning frontier
-# judges. Paired with *windowed* judging (see batch_size on the
-# evaluate_live_datasets call below), which amortises the shared prompt prefix
-# and cuts the judge-call count, so the higher per-token cost of these models
-# doesn't fully undo the savings. NOT reasoning/thinking judges — those dominate
-# the judging wall-clock (see the qwen3 note); instead each judge now justifies
-# every score inline (a lightweight stand-in for chain-of-thought).
+# Judge panel — the ORIGINAL developer's recommended 5-judge panel (the one behind
+# Nuenki's published `out_major_comparison*.json`): a deliberately diverse mix of
+# strong and flash-class judges, scored at temperature 0. Restored here (2026-06-23)
+# for sentence-level judging, which — unlike the old segment-sequential path — judges
+# every sentence independently and in parallel, so a slow reasoning judge no longer
+# stalls the run.
 #
-# DeepSeek V3 is kept in the mix for cost balance and provider diversity; swap
-# in other frontier slugs your OpenRouter access supports for different/stronger
-# judges (e.g. an Opus- or GPT-5-class model), or drop deepseek for max strength.
+# Two slugs needed care for this environment:
+#   * google/gemini-2.5-flash-preview is retired → use google/gemini-2.5-flash.
+#   * mistralai/mistral-medium-3 returns 404 "No endpoints matching your data
+#     policy" on this account unless Mistral providers are enabled at
+#     openrouter.ai/settings/privacy. Left IN the panel (the original recommends
+#     it); if it 404s the pipeline degrades gracefully — that judge just emits no
+#     RankItems — so enable the privacy setting or comment it out for a clean
+#     4-judge run.
+# qwen3-235b-a22b is a reasoning model (heavy output → the panel's main cost/time
+# driver), kept because parallel sentence judging tolerates it.
 compare_models = [
     (
-        "openai/gpt-4.1-comparison-system",
-        OpenrouterGenericInference(OPENROUTER_API_KEY, "openai/gpt-4.1"),
-    ),
-    (
-        "anthropic/claude-sonnet-4.6-comparison-system",
-        OpenrouterGenericInference(OPENROUTER_API_KEY, "anthropic/claude-sonnet-4.6"),
+        "qwen/qwen3-235b-a22b-comparison-system",
+        OpenrouterGenericInference(OPENROUTER_API_KEY, "qwen/qwen3-235b-a22b"),
     ),
     (
         "deepseek/deepseek-v3-comparison-system",
@@ -58,18 +59,27 @@ compare_models = [
             OPENROUTER_API_KEY, "deepseek/deepseek-chat-v3-0324"
         ),
     ),
+    (
+        "google/gemini-2.5-flash-comparison-system",
+        OpenrouterGenericInference(OPENROUTER_API_KEY, "google/gemini-2.5-flash"),
+    ),
+    (
+        "meta/llama-4-maverick-comparison-system",
+        OpenrouterGenericInference(OPENROUTER_API_KEY, "meta-llama/llama-4-maverick"),
+    ),
+    (
+        "mistralai/mistral-medium-3",
+        OpenrouterGenericInference(OPENROUTER_API_KEY, "mistralai/mistral-medium-3"),
+    ),
 ]
-# Previous flash-class panel — revert to this block for cheaper, faster judging:
-#   ("google/gemini-2.5-flash-comparison-system",
-#       OpenrouterGenericInference(OPENROUTER_API_KEY, "google/gemini-2.5-flash")),
-#   ("meta/llama-4-maverick-comparison-system",
-#       OpenrouterGenericInference(OPENROUTER_API_KEY, "meta-llama/llama-4-maverick")),
-#
-# Dropped (2026-06-21): qwen3-235b-a22b is a reasoning model — slow as a judge
-# (it dominated the judging wall-clock) and errored on probe.
-# Dropped (2026-06-21): mistralai/mistral-medium-3 returns 404 "No endpoints
-# matching your data policy" — providers excluded by this account's OpenRouter
-# privacy settings (openrouter.ai/settings/privacy).
+# Frontier non-reasoning panel (the 2026-06-22 windowed-segment default) — revert
+# to this for stronger/pricier judging without the qwen3 reasoning overhead:
+#   ("openai/gpt-4.1-comparison-system",
+#       OpenrouterGenericInference(OPENROUTER_API_KEY, "openai/gpt-4.1")),
+#   ("anthropic/claude-sonnet-4.6-comparison-system",
+#       OpenrouterGenericInference(OPENROUTER_API_KEY, "anthropic/claude-sonnet-4.6")),
+#   ("deepseek/deepseek-v3-comparison-system",
+#       OpenrouterGenericInference(OPENROUTER_API_KEY, "deepseek/deepseek-chat-v3-0324")),
 
 compare_models_coherence = [
     (
@@ -112,6 +122,8 @@ with open("out_testing.json", "w") as f:
 # segments one at a time, each model seeing its own previous five translations as
 # context (see live_evaluation.py). Kept small (a couple of sermons, capped
 # segments) so a run is tractable; widen sermon_ids / max_segments to scale up.
+JUDGING_UNIT = "sentence"  # "segment" | "sentence" (see judging_unit note below)
+
 data_live = evaluate_live_datasets(
     # Run one language at a time. Done: Simplified Chinese. Now running Korean.
     # Swap in the next language (or add several) when ready:
@@ -136,6 +148,15 @@ data_live = evaluate_live_datasets(
     # context (only the source text + every candidate). 1 = exact original
     # fidelity, one call per segment.
     batch_size=5,
+    # How the translated stream is judged:
+    #   "segment"  — score each clause-level segment in rolling best-context
+    #                (sequential per sermon; uses batch_size above).
+    #   "sentence" — regroup segments back into sentences aligned with the source,
+    #                concatenate each model's segment translations into a sentence,
+    #                and judge those sentences independently (fully parallel, and
+    #                identical to the batch benchmark's procedure). batch_size is
+    #                ignored. Output is named with a "_sentence" suffix below.
+    judging_unit=JUDGING_UNIT,
     # max_concurrency is the single rate-limit knob (total simultaneous API
     # calls); raise it if your OpenRouter limits allow, to finish proportionally
     # faster. language_workers/max_workers just need to keep it saturated.
@@ -146,7 +167,8 @@ data_live = evaluate_live_datasets(
 # Name the output by the language(s) run, so one-language-at-a-time runs don't
 # clobber each other (e.g. out_live_SimplifiedChinese.json).
 langs_slug = "_".join(d["language"].replace(" ", "") for d in data_live)
-with open(f"out_live_{langs_slug}.json", "w") as f:
+unit_suffix = "_sentence" if JUDGING_UNIT == "sentence" else ""
+with open(f"out_live_{langs_slug}{unit_suffix}.json", "w") as f:
     f.write(json.dumps(data_live, indent=4))
 
 import sys
